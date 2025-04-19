@@ -5,7 +5,7 @@ export default function EmptyScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/images/empty.png')} // Путь к картинке
+        source={require('../../assets/images/empty.png')} // Путь к картинке
         style={styles.image}
         resizeMode="contain" // Картинка масштабируется, сохраняя пропорции
       />

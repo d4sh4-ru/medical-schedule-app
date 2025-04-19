@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { login } from '../api/auth';
+import { login } from '../../api/auth';
 
 export default function LoginScreen({ navigation }) {
   // Отключаем шапку

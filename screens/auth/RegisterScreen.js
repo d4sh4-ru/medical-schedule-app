@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Switch, StyleSheet } from 'react-native';
-import { register } from '../api/auth';
+import { register } from '../../api/auth';
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');

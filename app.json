@@ -23,6 +23,16 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "packagerOpts": { // Не убирать, даже если очень хочется
+      "config": "metro.config.js",
+      "sourceExts": ["js", "jsx", "ts", "tsx", "svg"]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4bf3c0a1-8463-4cd1-951c-e184c42b74d7"
+      }
+    },
+    "owner": "d4sh4-ru"
   }
 }
