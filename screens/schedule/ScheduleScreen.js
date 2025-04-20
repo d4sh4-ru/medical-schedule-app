@@ -60,7 +60,6 @@ export default function ScheduleScreen() {
 
   return (
     <View style={[styles.container, { paddingBottom: 100 }]}>
-      <Text style={styles.title}>Расписание</Text>
       <Calendar
         style={styles.calendar}
         current={selectedDate}

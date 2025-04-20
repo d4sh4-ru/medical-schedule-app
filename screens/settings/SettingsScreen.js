@@ -30,7 +30,6 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Настройки</Text>
       <View style={styles.settingsCard}>
         <Text style={styles.bodyText}>Связанные пользователи</Text>
         <FlatList

@@ -8,6 +8,8 @@ import LoginScreen from './screens/auth/LoginScreen';
 import MainScreen from './screens/MainScreen';
 import ScheduleScreen from './screens/schedule/ScheduleScreen';
 import ScheduleFormScreen from './screens/schedule/ScheduleFormScreen';
+import StockScreen from './screens/stock/StockScreen';
+import StockFormScreen from './screens/stock/StockFormScreen';
 import SettingsScreen from './screens/settings/SettingsScreen';
 import UpdatePasswordScreen from './screens/settings/UpdatePasswordScreen';
 import EditMeScreen from './screens/settings/EditMeScreen';
@@ -26,15 +28,11 @@ const forFade = ({ current }) => ({
 const transitionSpec = {
   open: {
     animation: 'timing',
-    config: {
-      duration: 200, // Быстрый переход, как в Telegram
-    },
+    config: { duration: 200 },
   },
   close: {
     animation: 'timing',
-    config: {
-      duration: 200,
-    },
+    config: { duration: 200 },
   },
 };
 
@@ -50,13 +48,9 @@ export default function App() {
               transitionSpec: transitionSpec,
               gestureEnabled: false,
               cardStyle: { backgroundColor: 'transparent' },
-              headerStyle: {
-                backgroundColor: '#00BCD4',
-              },
+              headerStyle: { backgroundColor: '#00BCD4' },
               headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                fontWeight: 'bold',
-              },
+              headerTitleStyle: { fontWeight: 'bold' },
             }}
           >
             <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Вход' }} />
@@ -79,7 +73,7 @@ export default function App() {
             />
             <Stack.Screen
               name="Stock"
-              component={EmptyScreen}
+              component={StockScreen}
               options={{ title: 'Запасы', headerLeft: () => null }}
             />
             <Stack.Screen
@@ -88,6 +82,7 @@ export default function App() {
               options={{ title: 'Аналитика', headerLeft: () => null }}
             />
             <Stack.Screen name="ScheduleForm" component={ScheduleFormScreen} options={{ title: 'Приём' }} />
+            <Stack.Screen name="StockForm" component={StockFormScreen} options={{ title: 'Добавить запас' }} />
             <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} options={{ title: 'Обновление пароля' }} />
             <Stack.Screen name="EditMe" component={EditMeScreen} options={{ title: 'Редактирование профиля' }} />
           </Stack.Navigator>
