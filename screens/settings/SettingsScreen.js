@@ -1,4 +1,3 @@
-// screens/settings/SettingsScreen.js
 import React from 'react';
 import { View, Text, TouchableOpacity, Switch, FlatList } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -6,6 +5,7 @@ import { useTheme } from '../../utils/ThemeProvider';
 import { createGlobalStyles } from '../../styles/globalStyles';
 import { lightTheme, darkTheme } from '../../utils/theme';
 import NavBar from '../../components/NavBar';
+import { removeToken } from '../../utils/auth';
 
 // Временные данные для связанных пользователей
 const mockLinkedUsers = [
@@ -19,6 +19,12 @@ export default function SettingsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const isDarkTheme = theme === darkTheme;
+
+  // Функция выхода из профиля
+  const handleLogout = async () => {
+    await removeToken();
+    navigation.replace('Login');
+  };
 
   // Рендеринг связанного пользователя
   const renderLinkedUser = ({ item }) => (
@@ -60,6 +66,12 @@ export default function SettingsScreen() {
           thumbColor={styles.switch.thumbColor}
         />
       </View>
+      <TouchableOpacity
+        style={styles.settingsCard}
+        onPress={handleLogout}
+      >
+        <Text style={[styles.bodyText, { color: theme.colors.error }]}>Выйти из профиля</Text>
+      </TouchableOpacity>
       <NavBar />
     </View>
   );

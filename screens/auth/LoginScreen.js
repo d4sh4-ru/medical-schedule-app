@@ -62,7 +62,7 @@ export default function LoginScreen({ navigation }) {
 
     try {
       await login(email, password);
-      navigation.replace('EmptyScreen');
+      navigation.replace('Main');
     } catch (error) {
       alert('Ошибка: ' + error.message);
     }

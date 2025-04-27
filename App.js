@@ -14,6 +14,7 @@ import SettingsScreen from './screens/settings/SettingsScreen';
 import UpdatePasswordScreen from './screens/settings/UpdatePasswordScreen';
 import EditMeScreen from './screens/settings/EditMeScreen';
 import EmptyScreen from './screens/error/EmptyScreen';
+import ProtectedRoute from './utils/ProtectedRoute';
 
 const Stack = createStackNavigator();
 
@@ -36,6 +37,54 @@ const transitionSpec = {
   },
 };
 
+// Публичные маршруты
+const publicRoutes = [
+  { name: 'Login', component: LoginScreen, options: { title: 'Вход' } },
+  { name: 'Register', component: RegisterScreen, options: { title: 'Регистрация' } },
+  { name: 'EmptyScreen', component: EmptyScreen, options: { title: 'Ошибка' } },
+];
+
+// Защищённые маршруты
+const protectedRoutes = [
+  {
+    name: 'Main',
+    component: MainScreen,
+    options: { title: 'Главная', headerLeft: () => null },
+  },
+  {
+    name: 'Schedule',
+    component: ScheduleScreen,
+    options: { title: 'Расписание', headerLeft: () => null },
+  },
+  {
+    name: 'Settings',
+    component: SettingsScreen,
+    options: { title: 'Настройки', headerLeft: () => null },
+  },
+  {
+    name: 'Stock',
+    component: StockScreen,
+    options: { title: 'Запасы', headerLeft: () => null },
+  },
+  {
+    name: 'Analytics',
+    component: EmptyScreen,
+    options: { title: 'Аналитика', headerLeft: () => null },
+  },
+  { name: 'ScheduleForm', component: ScheduleFormScreen, options: { title: 'Приём' } },
+  { name: 'StockForm', component: StockFormScreen, options: { title: 'Добавить запас' } },
+  {
+    name: 'UpdatePassword',
+    component: UpdatePasswordScreen,
+    options: { title: 'Обновление пароля' },
+  },
+  {
+    name: 'EditMe',
+    component: EditMeScreen,
+    options: { title: 'Редактирование профиля' },
+  },
+];
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -53,38 +102,27 @@ export default function App() {
               headerTitleStyle: { fontWeight: 'bold' },
             }}
           >
-            <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Вход' }} />
-            <Stack.Screen name="Register" component={RegisterScreen} options={{ title: 'Регистрация' }} />
-            <Stack.Screen name="EmptyScreen" component={EmptyScreen} options={{ title: 'Ошибка' }} />
-            <Stack.Screen
-              name="Main"
-              component={MainScreen}
-              options={{ title: 'Главная', headerLeft: () => null }}
-            />
-            <Stack.Screen
-              name="Schedule"
-              component={ScheduleScreen}
-              options={{ title: 'Расписание', headerLeft: () => null }}
-            />
-            <Stack.Screen
-              name="Settings"
-              component={SettingsScreen}
-              options={{ title: 'Настройки', headerLeft: () => null }}
-            />
-            <Stack.Screen
-              name="Stock"
-              component={StockScreen}
-              options={{ title: 'Запасы', headerLeft: () => null }}
-            />
-            <Stack.Screen
-              name="Analytics"
-              component={EmptyScreen}
-              options={{ title: 'Аналитика', headerLeft: () => null }}
-            />
-            <Stack.Screen name="ScheduleForm" component={ScheduleFormScreen} options={{ title: 'Приём' }} />
-            <Stack.Screen name="StockForm" component={StockFormScreen} options={{ title: 'Добавить запас' }} />
-            <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} options={{ title: 'Обновление пароля' }} />
-            <Stack.Screen name="EditMe" component={EditMeScreen} options={{ title: 'Редактирование профиля' }} />
+            {publicRoutes.map((route) => (
+              <Stack.Screen
+                key={route.name}
+                name={route.name}
+                component={route.component}
+                options={route.options}
+              />
+            ))}
+            {protectedRoutes.map((route) => (
+              <Stack.Screen
+                key={route.name}
+                name={route.name}
+                options={route.options}
+              >
+                {(props) => (
+                  <ProtectedRoute>
+                    <route.component {...props} />
+                  </ProtectedRoute>
+                )}
+              </Stack.Screen>
+            ))}
           </Stack.Navigator>
         </NavigationContainer>
       </MedicationProvider>
