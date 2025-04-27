@@ -1,7 +1,7 @@
 import { saveToken } from '../utils/auth';
 
 export const login = async (email, password) => {
-  const response = await fetch('http://noname-pc.netbird.cloud:8080/login', {
+  const response = await fetch('http://cloud-ru-test.netbird.cloud:8080/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ export const login = async (email, password) => {
 };
 
 export const register = async (email, password, firstName, lastName, role, middleName, phoneNumber) => {
-  const response = await fetch('http://noname-pc.netbird.cloud:8080/register', {
+  const response = await fetch('http://cloud-ru-test.netbird.cloud:8080/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

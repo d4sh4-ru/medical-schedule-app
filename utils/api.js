@@ -1,7 +1,7 @@
-import { getToken } from './auth';
+import { getToken, removeToken } from './auth';
 
 // Обёртка для fetch с добавлением токена в заголовки
-export const fetchWithAuth = async (url, options = {}) => {
+export const fetchWithAuth = async (url, options = {}, navigation = null) => {
   const token = await getToken();
   const headers = {
     'Content-Type': 'application/json',
@@ -17,7 +17,7 @@ export const fetchWithAuth = async (url, options = {}) => {
     headers,
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && navigation) {
     await removeToken();
     navigation.replace('Login');
     throw new Error('Unauthorized: Токен недействителен или истёк');
