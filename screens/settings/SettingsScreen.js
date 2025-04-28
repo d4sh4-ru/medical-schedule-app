@@ -23,6 +23,8 @@ export default function SettingsScreen() {
   // Функция выхода из профиля
   const handleLogout = async () => {
     await removeToken();
+    await AsyncStorage.removeItem('notifications');
+    await AsyncStorage.removeItem('stocks');
     navigation.replace('Login');
   };
 
