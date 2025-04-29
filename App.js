@@ -11,6 +11,7 @@ import ScheduleFormScreen from './screens/schedule/ScheduleFormScreen';
 import StockScreen from './screens/stock/StockScreen';
 import StockFormScreen from './screens/stock/StockFormScreen';
 import SettingsScreen from './screens/settings/SettingsScreen';
+import AnalitycsScreen from './screens/analitycs/AnalitycsScreen';
 import UpdatePasswordScreen from './screens/settings/UpdatePasswordScreen';
 import EditMeScreen from './screens/settings/EditMeScreen';
 import EmptyScreen from './screens/error/EmptyScreen';
@@ -68,7 +69,7 @@ const protectedRoutes = [
   },
   {
     name: 'Analytics',
-    component: EmptyScreen,
+    component: AnalitycsScreen,
     options: { title: 'Аналитика', headerLeft: () => null },
   },
   { name: 'ScheduleForm', component: ScheduleFormScreen, options: { title: 'Приём' } },
