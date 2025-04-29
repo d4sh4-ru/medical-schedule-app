@@ -1,38 +1,127 @@
-// screens/schedule/ScheduleScreen.js
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { useNavigation } from '@react-navigation/native';
-import { MedicationContext } from '../../utils/MedicationContext';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../utils/ThemeProvider';
 import { createGlobalStyles } from '../../styles/globalStyles';
 import Svg, { Path } from 'react-native-svg';
 import { FAB } from 'react-native-elements';
 import NavBar from '../../components/NavBar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchWithAuth } from '../../utils/api';
 
 export default function ScheduleScreen() {
   const { theme } = useTheme();
   const styles = createGlobalStyles(theme.colors);
   const navigation = useNavigation();
-  const { medications, deleteMedication } = useContext(MedicationContext);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [notifications, setNotifications] = useState([]);
+  const [markedDays, setMarkedDays] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastFetchDate, setLastFetchDate] = useState(new Date().toDateString());
 
   // Форматирование времени
   const formatTime = (time) => {
     return new Date(time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Фильтрация приёмов по дате
-  const filteredMedications = medications.filter((med) =>
-    med.times.some((time) => new Date(time).toISOString().split('T')[0] === selectedDate)
+  // Загрузка дней с приёмами
+  const fetchMarkedDays = async (month, year) => {
+    try {
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/schedule/notifications/month/${month}/${year}`,
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      await AsyncStorage.setItem(`markedDays-${month}-${year}`, JSON.stringify(data.days));
+      return data.days;
+    } catch (err) {
+      console.error('Error fetching marked days:', err);
+      const cached = await AsyncStorage.getItem(`markedDays-${month}-${year}`);
+      return cached ? JSON.parse(cached) : [];
+    }
+  };
+
+  // Загрузка уведомлений на день
+  const fetchNotifications = async (day, month, year) => {
+    try {
+      setIsLoading(true);
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/schedule/notifications/day/${day}/${month}/${year}`,
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      setNotifications(data);
+      await AsyncStorage.setItem(`notifications-${day}-${month}-${year}`, JSON.stringify(data));
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      setError('Не удалось загрузить приёмы');
+      const cached = await AsyncStorage.getItem(`notifications-${day}-${month}-${year}`);
+      if (cached) {
+        setNotifications(JSON.parse(cached));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Инициализация
+  const initialize = async () => {
+    try {
+      const [year, month, day] = selectedDate.split('-').map(Number);
+      const cachedNotifications = await AsyncStorage.getItem(`notifications-${day}-${month}-${year}`);
+      if (cachedNotifications) {
+        setNotifications(JSON.parse(cachedNotifications));
+        setIsLoading(false);
+      }
+      await fetchNotifications(day, month, year);
+
+      const days = await fetchMarkedDays(month, year);
+      setMarkedDays(days);
+    } catch (err) {
+      console.error('Error initializing:', err);
+      setError('Ошибка загрузки данных');
+      setIsLoading(false);
+    }
+  };
+
+  // Загрузка при монтировании и фокусе
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const [year, month, day] = selectedDate.split('-').map(Number);
+      fetchNotifications(day, month, year);
+    }, [selectedDate])
   );
 
+  // Очистка кэша при смене суток
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentDate = new Date().toDateString();
+      if (currentDate !== lastFetchDate) {
+        (async () => {
+          const keys = await AsyncStorage.getAllKeys();
+          const notificationKeys = keys.filter((key) => key.startsWith('notifications-') || key.startsWith('markedDays-'));
+          await AsyncStorage.multiRemove(notificationKeys);
+          await initialize();
+          setLastFetchDate(currentDate);
+        })();
+      }
+    }, 300000); // Каждые 5 минут
+    return () => clearInterval(interval);
+  }, [lastFetchDate]);
+
   // Отметки на календаре
-  const markedDates = medications.reduce((acc, med) => {
-    med.times.forEach((time) => {
-      const date = new Date(time).toISOString().split('T')[0];
-      acc[date] = { marked: true, dotColor: theme.colors.primary };
-    });
+  const markedDates = markedDays.reduce((acc, day) => {
+    const date = `${selectedDate.split('-')[0]}-${selectedDate.split('-')[1].padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    acc[date] = { marked: true, dotColor: theme.colors.primary };
     return acc;
   }, {});
 
@@ -42,8 +131,8 @@ export default function ScheduleScreen() {
     selectedColor: theme.colors.accent,
   };
 
-  // Удаление приёма
-  const handleDelete = (id) => {
+  // Удаление уведомления
+  const handleDelete = async (id) => {
     Alert.alert(
       'Подтверждение',
       'Вы уверены, что хотите удалить этот приём?',
@@ -52,7 +141,21 @@ export default function ScheduleScreen() {
         {
           text: 'Удалить',
           style: 'destructive',
-          onPress: () => deleteMedication(id),
+          onPress: async () => {
+            try {
+              await fetchWithAuth(
+                `http://cloud-ru-test.netbird.cloud:8080/api/schedule/notifications/${id}`,
+                { method: 'DELETE' },
+                navigation
+              );
+              const [year, month, day] = selectedDate.split('-').map(Number);
+              await fetchNotifications(day, month, year);
+              await fetchMarkedDays(month, year); // Обновляем календарь
+            } catch (err) {
+              console.error('Error deleting notification:', err);
+              Alert.alert('Ошибка', 'Не удалось удалить приём');
+            }
+          },
         },
       ]
     );
@@ -80,24 +183,23 @@ export default function ScheduleScreen() {
         }}
       />
       <ScrollView style={{ flex: 1 }}>
-        {filteredMedications.length > 0 ? (
-          filteredMedications.map((med) => (
-            <View
-              key={med.id}
-              style={styles.card}
-            >
+        {isLoading ? (
+          <Text style={[styles.bodyText, { textAlign: 'center', marginTop: 20 }]}>Загрузка...</Text>
+        ) : error && notifications.length === 0 ? (
+          <Text style={[styles.bodyText, { textAlign: 'center', marginTop: 20 }]}>{error}</Text>
+        ) : notifications.length > 0 ? (
+          notifications.map((notification) => (
+            <View key={notification.id} style={styles.card}>
               <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{med.name}</Text>
-                <Text style={styles.cardText}>
-                  Дозировка: {med.tabletCount} табл. x {med.tabletDosage} мг
-                </Text>
-                <Text style={styles.cardText}>
-                  Время: {med.times.map(formatTime).join(', ')}
-                </Text>
+                <Text style={styles.cardTitle}>{notification.medicationTradeName}</Text>
+                <Text style={styles.cardText}>Время: {formatTime(notification.sent_at)}</Text>
+                <Text style={styles.cardText}>Статус: {notification.status}</Text>
               </View>
               <View style={styles.cardActions}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('ScheduleForm', { medication: med })}
+                  onPress={() =>
+                    navigation.navigate('ScheduleForm', { notificationId: notification.id })
+                  }
                 >
                   <Svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                     <Path
@@ -106,7 +208,7 @@ export default function ScheduleScreen() {
                     />
                   </Svg>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDelete(med.id)}>
+                <TouchableOpacity onPress={() => handleDelete(notification.id)}>
                   <Svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                     <Path
                       d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
