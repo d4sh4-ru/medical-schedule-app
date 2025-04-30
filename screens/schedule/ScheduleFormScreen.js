@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,36 +12,29 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import DatePicker from 'react-native-date-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../../utils/ThemeProvider';
-import { MedicationContext } from '../../utils/MedicationContext';
 import { createGlobalStyles } from '../../styles/globalStyles';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
+import { fetchWithAuth } from '../../utils/api';
 
 export default function ScheduleFormScreen() {
   const { theme } = useTheme();
   const styles = createGlobalStyles(theme.colors);
-  const { addMedication, updateMedication } = useContext(MedicationContext);
   const route = useRoute();
   const navigation = useNavigation();
-  const medication = route.params?.medication;
+  const scheduleId = route.params?.scheduleId;
 
-  const isEditing = !!medication;
+  const isEditing = !!scheduleId;
 
-  const [name, setName] = useState(isEditing ? medication.name : '');
-  const [tabletCount, setTabletCount] = useState(
-    isEditing ? medication.tabletCount.toString() : '1'
-  );
-  const [tabletDosage, setTabletDosage] = useState(
-    isEditing ? medication.tabletDosage.toString() : '100'
-  );
-  const [times, setTimes] = useState(
-    isEditing ? medication.times.map((time) => new Date(time)) : [new Date()]
-  );
+  const [name, setName] = useState('');
+  const [tabletCount, setTabletCount] = useState('1');
+  const [tabletDosage, setTabletDosage] = useState('100');
+  const [times, setTimes] = useState([new Date()]);
   const [dateRange, setDateRange] = useState({
-    startDate: isEditing && medication.startDate ? new Date(medication.startDate) : new Date(),
-    endDate: isEditing && medication.endDate ? new Date(medication.endDate) : null,
+    startDate: new Date(),
+    endDate: null,
   });
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showDosagePicker, setShowDosagePicker] = useState(false);
@@ -50,6 +43,8 @@ export default function ScheduleFormScreen() {
   const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
   const [markedDates, setMarkedDates] = useState({});
   const [customDosage, setCustomDosage] = useState('');
+  const [administrationMethodId, setAdministrationMethodId] = useState(null);
+  const [tempTime, setTempTime] = useState(null);
 
   const dosageOptions = [
     { label: '10 мг', value: '10' },
@@ -62,6 +57,58 @@ export default function ScheduleFormScreen() {
     { label: '1000 мг', value: '1000' },
     { label: 'Своя дозировка', value: 'custom' },
   ];
+
+  // Загрузка данных для редактирования
+  useEffect(() => {
+    if (isEditing) {
+      fetchScheduleDetails(scheduleId);
+    }
+  }, [scheduleId]);
+
+  const fetchScheduleDetails = async (scheduleId) => {
+    try {
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/schedule/${scheduleId}`,
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      setName(data.medicationTradeName);
+      setTabletCount(data.administrationMethod.singleDosageTablets.toString());
+      setTabletDosage(parseInt(data.administrationMethod.singleDosage).toString());
+      setTimes(
+        data.administrationMethod.administrationTimes.split(',').map((time) => {
+          const [hours, minutes] = time.split(':').map(Number);
+          const date = new Date();
+          date.setHours(hours, minutes, 0, 0);
+          return date;
+        })
+      );
+      setDateRange({
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+      });
+      setAdministrationMethodId(data.administrationMethod.id);
+      // Пометим даты в календаре
+      const newMarkedDates = {};
+      let currentDate = new Date(data.startDate);
+      const endDate = new Date(data.endDate);
+      while (currentDate <= endDate) {
+        const dateString = currentDate.toISOString().split('T')[0];
+        newMarkedDates[dateString] = {
+          color: theme.colors.accent + '33',
+          textColor: theme.colors.text,
+          startingDay: currentDate.getTime() === new Date(data.startDate).getTime(),
+          endingDay: currentDate.getTime() === endDate.getTime(),
+        };
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      setMarkedDates(newMarkedDates);
+    } catch (err) {
+      console.error('Error fetching schedule details:', err);
+      Alert.alert('Ошибка', 'Не удалось загрузить данные приёма');
+    }
+  };
 
   // Обработка выбора диапазона дат
   const handleDateRangeSelect = (day) => {
@@ -133,25 +180,40 @@ export default function ScheduleFormScreen() {
       Alert.alert('Ошибка', 'Максимальное количество приёмов в сутки — 9');
       return;
     }
-    setTimes([...times, new Date()]);
+    const newTime = new Date();
+    setTimes([...times, newTime]);
   };
 
   // Изменение времени
-  const handleTimeConfirm = (selectedTime) => {
-    try {
-      const newTimes = [...times];
-      newTimes[currentTimeIndex] = selectedTime;
-      setTimes(newTimes);
-      setShowTimePicker(false);
-    } catch (error) {
-      console.error('DatePicker error:', error);
-      Alert.alert('Ошибка', 'Не удалось выбрать время. Попробуйте снова.');
+  const handleTimeChange = (event, selectedTime) => {
+    if (selectedTime) {
+      setTempTime(selectedTime);
     }
+    // На iOS событие 'dismissed' может срабатывать при прокрутке спиннера, игнорируем его
+    if (event.type === 'dismissed' && Platform.OS === 'ios') {
+      return;
+    }
+    // На Android 'dismissed' срабатывает при отмене, но мы хотим закрывать только по кнопке "Закрыть"
+    if (event.type === 'dismissed' && Platform.OS === 'android') {
+      return;
+    }
+  };
+
+  // Подтверждение времени
+  const handleTimeConfirm = () => {
+    if (tempTime) {
+      const newTimes = [...times];
+      newTimes[currentTimeIndex] = tempTime;
+      setTimes(newTimes);
+    }
+    setShowTimePicker(false);
+    setTempTime(null);
   };
 
   // Отмена выбора времени
   const handleTimeCancel = () => {
     setShowTimePicker(false);
+    setTempTime(null);
   };
 
   // Удаление времени
@@ -173,8 +235,22 @@ export default function ScheduleFormScreen() {
     return `${dateRange.startDate.toLocaleDateString('ru-RU')} - ${dateRange.endDate.toLocaleDateString('ru-RU')}`;
   };
 
+  // Форматирование даты для API
+  const formatDateForApi = (date) => {
+    if (!date) return null;
+    const offset = '+03:00';
+    return `${date.toISOString().split('T')[0]}T00:00:00${offset}`;
+  };
+
+  // Форматирование времён для API
+  const formatTimesForApi = (timesArray) => {
+    return timesArray
+      .map((time) => time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }))
+      .join(',');
+  };
+
   // Подтверждение
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) {
       Alert.alert('Ошибка', 'Введите название препарата');
       return;
@@ -183,23 +259,54 @@ export default function ScheduleFormScreen() {
       Alert.alert('Ошибка', 'Выберите дату начала');
       return;
     }
-    const medicationData = {
-      name,
-      tabletCount: parseInt(tabletCount),
-      tabletDosage: parseInt(tabletDosage),
-      times,
-      startDate: dateRange.startDate,
-      endDate: dateRange.endDate,
-      completed: isEditing ? medication.completed : false,
-    };
-    if (isEditing) {
-      updateMedication(medication.id, medicationData);
-      Alert.alert('Успех', 'Препарат обновлён');
-    } else {
-      addMedication(medicationData);
-      Alert.alert('Успех', 'Препарат добавлен');
+    if (!dateRange.endDate) {
+      Alert.alert('Ошибка', 'Выберите дату окончания');
+      return;
     }
-    navigation.goBack();
+
+    const medicationData = {
+      medicationTradeName: name,
+      startDate: formatDateForApi(dateRange.startDate),
+      endDate: formatDateForApi(dateRange.endDate),
+      administrationMethod: {
+        medicationTradeName: name,
+        singleDosage: `${parseInt(tabletDosage)} мг`,
+        singleDosageTablets: parseInt(tabletCount),
+        interval: 1,
+        administrationTimes: formatTimesForApi(times),
+      },
+    };
+
+    if (isEditing) {
+      if (!administrationMethodId) {
+        Alert.alert('Ошибка', 'Не удалось определить ID метода приёма');
+        return;
+      }
+      medicationData.id = scheduleId;
+      medicationData.administrationMethod.id = administrationMethodId;
+      medicationData.administrationMethodID = 0;
+    }
+
+    try {
+      const method = isEditing ? 'PUT' : 'POST';
+      const response = await fetchWithAuth(
+        'http://cloud-ru-test.netbird.cloud:8080/api/schedule',
+        {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(medicationData),
+        },
+        navigation
+      );
+      const data = await response.json();
+      Alert.alert('Успех', isEditing ? 'Препарат обновлён' : 'Препарат добавлен');
+      navigation.goBack();
+    } catch (err) {
+      console.error('Error submitting schedule:', err);
+      Alert.alert('Ошибка', 'Не удалось сохранить данные приёма');
+    }
   };
 
   // Кастомный Picker для дозировки
@@ -303,8 +410,15 @@ export default function ScheduleFormScreen() {
           paddingHorizontal: 12,
         }}
         onPress={() => {
-          setCurrentTimeIndex(index);
-          setShowTimePicker(true);
+          console.log('Opening time picker for index:', index, 'times:', times);
+          if (times[index]) {
+            setCurrentTimeIndex(index);
+            setTempTime(times[index]);
+            setShowTimePicker(true);
+          } else {
+            console.error('Invalid time at index:', index);
+            Alert.alert('Ошибка', 'Невозможно открыть выбор времени');
+          }
         }}
       >
         <Text style={{ color: theme.colors.text, fontSize: 16 }}>{formatTime(time)}</Text>
@@ -446,18 +560,44 @@ export default function ScheduleFormScreen() {
             />
           </Svg>
         </TouchableOpacity>
-        {showTimePicker && (
-          <DatePicker
-            date={times[currentTimeIndex]}
-            mode="time"
-            locale="ru-RU"
-            onDateChange={handleTimeConfirm}
-            confirmText="Подтвердить"
-            cancelText="Отмена"
-            onCancel={handleTimeCancel}
-          />
-        )}
       </ScrollView>
+      <Modal
+        visible={showTimePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {}}
+      >
+        <View style={[styles.modalContainer, { justifyContent: 'center', padding: 16 }]}>
+          <View style={[styles.modalContent, { borderRadius: 12, padding: 16, alignItems: 'center', backgroundColor: '#ffffff' }]}>
+            {tempTime ? (
+              <DateTimePicker
+                value={tempTime}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'clock'}
+                onChange={handleTimeChange}
+                locale="ru-RU"
+                is24Hour={true}
+                textColor="black"
+                style={Platform.OS === 'android' ? { color: 'black' } : {}}
+              />
+            ) : (
+              <Text style={styles.bodyText}>Ошибка: время не определено</Text>
+            )}
+            <TouchableOpacity
+              style={[styles.markButton, { marginTop: 16 }]}
+              onPress={handleTimeConfirm}
+            >
+              <Text style={styles.markButtonText}>Подтвердить</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.markButton, { marginTop: 8 }]}
+              onPress={handleTimeCancel}
+            >
+              <Text style={styles.markButtonText}>Закрыть</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <View
         style={{
           position: 'absolute',

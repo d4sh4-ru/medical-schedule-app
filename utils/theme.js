@@ -8,6 +8,7 @@ export const lightTheme = {
     error: '#FF5252', // Красный для ошибок
     background: '#FFFFFF', // Белый для карточек
     border: '#CFD8DC', // Светлая обводка
+    success: '#26A69A',
   },
   typography: {
     title: {
