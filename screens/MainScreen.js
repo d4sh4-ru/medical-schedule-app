@@ -24,7 +24,7 @@ export default function MainScreen() {
       setIsLoading(true);
       setIsRetrying(true);
       const response = await fetchWithAuth(
-        'http://cloud-ru-test.netbird.cloud:8080/api/schedule/notifications/today',
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan/notifications/today',
         { method: 'GET' },
         navigation
       );
@@ -91,21 +91,25 @@ export default function MainScreen() {
   }, []);
 
   // Функция для вычисления оставшегося времени
-  const getTimeRemaining = (sentAt) => {
-    const now = new Date();
-    const notificationTime = new Date(sentAt);
-    const diffMs = notificationTime - now;
-    if (diffMs < 0) return { overdue: true, text: 'Просрочено' };
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    return { overdue: false, text: `${hours} ч ${minutes} мин` };
-  };
+const getTimeRemaining = (sentAt) => {
+  const now = new Date();
+  const notificationTime = new Date(sentAt); // Парсим ISO строку
+  if (isNaN(notificationTime.getTime())) {
+    // Если время не удалось распарсить
+    return { overdue: true, text: 'Неверное время' };
+  }
+  const diffMs = notificationTime - now;
+  if (diffMs < 0) return { overdue: true, text: 'Просрочено' };
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return { overdue: false, text: `${hours} ч ${minutes} мин` };
+};
 
   // Отметка уведомления как принятого
   const markNotificationAsTaken = async (notificationId) => {
     try {
       const response = await fetchWithAuth(
-        `http://cloud-ru-test.netbird.cloud:8080/api/schedule/notifications/${notificationId}/confirm`,
+        `http://cloud-ru-test.netbird.cloud:8080/api/plan/notifications/${notificationId}/confirm`,
         {
           method: 'PATCH',
           body: JSON.stringify({ status: 'accepted', actual_taken_at: new Date().toISOString() }),
@@ -126,9 +130,9 @@ export default function MainScreen() {
   const renderNotification = ({ item }) => {
     const isTaken = item.status === 'accepted';
     const timeText = isTaken
-      ? new Date(item.sent_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-      : getTimeRemaining(item.sent_at).text;
-    const isOverdue = !isTaken && getTimeRemaining(item.sent_at).overdue;
+      ? new Date(item.sentAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+      : getTimeRemaining(item.sentAt).text;
+    const isOverdue = !isTaken && getTimeRemaining(item.sentAt).overdue;
 
     return (
       <View style={[styles.card, isTaken ? styles.cardCompleted : isOverdue && styles.cardOverdue]}>
