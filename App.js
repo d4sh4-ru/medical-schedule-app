@@ -1,7 +1,6 @@
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { ThemeProvider } from './utils/ThemeProvider';
-import { MedicationProvider } from './utils/MedicationContext';
 import { createStackNavigator } from '@react-navigation/stack';
 import RegisterScreen from './screens/auth/RegisterScreen';
 import LoginScreen from './screens/auth/LoginScreen';
@@ -89,44 +88,42 @@ const protectedRoutes = [
 export default function App() {
   return (
     <ThemeProvider>
-      <MedicationProvider>
-        <NavigationContainer>
-          <Stack.Navigator
-            initialRouteName="Main"
-            screenOptions={{
-              cardStyleInterpolator: forFade,
-              transitionSpec: transitionSpec,
-              gestureEnabled: false,
-              cardStyle: { backgroundColor: 'transparent' },
-              headerStyle: { backgroundColor: '#00BCD4' },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: { fontWeight: 'bold' },
-            }}
-          >
-            {publicRoutes.map((route) => (
-              <Stack.Screen
-                key={route.name}
-                name={route.name}
-                component={route.component}
-                options={route.options}
-              />
-            ))}
-            {protectedRoutes.map((route) => (
-              <Stack.Screen
-                key={route.name}
-                name={route.name}
-                options={route.options}
-              >
-                {(props) => (
-                  <ProtectedRoute>
-                    <route.component {...props} />
-                  </ProtectedRoute>
-                )}
-              </Stack.Screen>
-            ))}
-          </Stack.Navigator>
-        </NavigationContainer>
-      </MedicationProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Main"
+          screenOptions={{
+            cardStyleInterpolator: forFade,
+            transitionSpec: transitionSpec,
+            gestureEnabled: false,
+            cardStyle: { backgroundColor: 'transparent' },
+            headerStyle: { backgroundColor: '#00BCD4' },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: { fontWeight: 'bold' },
+          }}
+        >
+          {publicRoutes.map((route) => (
+            <Stack.Screen
+              key={route.name}
+              name={route.name}
+              component={route.component}
+              options={route.options}
+            />
+          ))}
+          {protectedRoutes.map((route) => (
+            <Stack.Screen
+              key={route.name}
+              name={route.name}
+              options={route.options}
+            >
+              {(props) => (
+                <ProtectedRoute>
+                  <route.component {...props} />
+                </ProtectedRoute>
+              )}
+            </Stack.Screen>
+          ))}
+        </Stack.Navigator>
+      </NavigationContainer>
     </ThemeProvider>
   );
 }
