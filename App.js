@@ -13,8 +13,8 @@ import SettingsScreen from './screens/settings/SettingsScreen';
 import AnalitycsScreen from './screens/analitycs/AnalitycsScreen';
 import UpdatePasswordScreen from './screens/settings/UpdatePasswordScreen';
 import EditMeScreen from './screens/settings/EditMeScreen';
-import EmptyScreen from './screens/error/EmptyScreen';
 import ProtectedRoute from './utils/ProtectedRoute';
+import { MedicationProvider } from './utils/MedicationContext';
 
 const Stack = createStackNavigator();
 
@@ -39,9 +39,16 @@ const transitionSpec = {
 
 // Публичные маршруты
 const publicRoutes = [
-  { name: 'Login', component: LoginScreen, options: { title: 'Вход' } },
-  { name: 'Register', component: RegisterScreen, options: { title: 'Регистрация' } },
-  { name: 'EmptyScreen', component: EmptyScreen, options: { title: 'Ошибка' } },
+  {
+    name: 'Login',
+    component: LoginScreen,
+    options: { title: 'Вход', headerLeft: () => null },
+  },
+  {
+    name: 'Register',
+    component: RegisterScreen,
+    options: { title: 'Регистрация', headerLeft: () => null },
+  },
 ];
 
 // Защищённые маршруты
@@ -71,8 +78,16 @@ const protectedRoutes = [
     component: AnalitycsScreen,
     options: { title: 'Аналитика', headerLeft: () => null },
   },
-  { name: 'ScheduleForm', component: ScheduleFormScreen, options: { title: 'Приём' } },
-  { name: 'StockForm', component: StockFormScreen, options: { title: 'Добавить запас' } },
+  {
+    name: 'ScheduleForm',
+    component: ScheduleFormScreen,
+    options: { title: 'Приём' },
+  },
+  {
+    name: 'StockForm',
+    component: StockFormScreen,
+    options: { title: 'Добавить запас' },
+  },
   {
     name: 'UpdatePassword',
     component: UpdatePasswordScreen,
@@ -89,40 +104,42 @@ export default function App() {
   return (
     <ThemeProvider>
       <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Main"
-          screenOptions={{
-            cardStyleInterpolator: forFade,
-            transitionSpec: transitionSpec,
-            gestureEnabled: false,
-            cardStyle: { backgroundColor: 'transparent' },
-            headerStyle: { backgroundColor: '#00BCD4' },
-            headerTintColor: '#FFFFFF',
-            headerTitleStyle: { fontWeight: 'bold' },
-          }}
-        >
-          {publicRoutes.map((route) => (
-            <Stack.Screen
-              key={route.name}
-              name={route.name}
-              component={route.component}
-              options={route.options}
-            />
-          ))}
-          {protectedRoutes.map((route) => (
-            <Stack.Screen
-              key={route.name}
-              name={route.name}
-              options={route.options}
-            >
-              {(props) => (
-                <ProtectedRoute>
-                  <route.component {...props} />
-                </ProtectedRoute>
-              )}
-            </Stack.Screen>
-          ))}
-        </Stack.Navigator>
+        <MedicationProvider navigation={navigationRef}>
+          <Stack.Navigator
+            initialRouteName='Main'
+            screenOptions={{
+              cardStyleInterpolator: forFade,
+              transitionSpec: transitionSpec,
+              gestureEnabled: false,
+              cardStyle: { backgroundColor: 'transparent' },
+              headerStyle: { backgroundColor: '#00BCD4' },
+              headerTintColor: '#FFFFFF',
+              headerTitleStyle: { fontWeight: 'bold' },
+            }}
+          >
+            {publicRoutes.map((route) => (
+              <Stack.Screen
+                key={route.name}
+                name={route.name}
+                component={route.component}
+                options={route.options}
+              />
+            ))}
+            {protectedRoutes.map((route) => (
+              <Stack.Screen
+                key={route.name}
+                name={route.name}
+                options={route.options}
+              >
+                {(props) => (
+                  <ProtectedRoute>
+                    <route.component {...props} />
+                  </ProtectedRoute>
+                )}
+              </Stack.Screen>
+            ))}
+          </Stack.Navigator>
+        </MedicationProvider>
       </NavigationContainer>
     </ThemeProvider>
   );

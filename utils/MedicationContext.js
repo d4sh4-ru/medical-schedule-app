@@ -5,33 +5,18 @@ import { fetchWithAuth } from './api';
 export const MedicationContext = createContext();
 
 export const MedicationProvider = ({ children, navigation }) => {
-  const [medications, setMedications] = useState([
-    {
-      id: '1',
-      name: 'Парацетамол',
-      tabletCount: 2,
-      tabletDosage: 500,
-      times: [new Date(2025, 3, 20, 8, 0), new Date(2025, 3, 20, 20, 0)],
-    },
-    {
-      id: '2',
-      name: 'Ибупрофен',
-      tabletCount: 1,
-      tabletDosage: 400,
-      times: [new Date(2025, 3, 21, 12, 0)],
-    },
-  ]);
-
   const [stocks, setStocks] = useState([]);
   const [isLoadingStocks, setIsLoadingStocks] = useState(true);
   const [stocksError, setStocksError] = useState(null);
 
-  // Загрузка остатков с сервера
+  // --- Остатки (Stock) ---
+
+  // Получение всех остатков
   const fetchStocks = async () => {
     try {
       setIsLoadingStocks(true);
       const response = await fetchWithAuth(
-        'http://cloud-ru-test.netbird.cloud:8080/api/schedule/restock',
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan/restock',
         { method: 'GET' },
         navigation
       );
@@ -51,7 +36,7 @@ export const MedicationProvider = ({ children, navigation }) => {
     }
   };
 
-  // Инициализация при монтировании
+  // Инициализация остатков при монтировании
   useEffect(() => {
     (async () => {
       try {
@@ -69,11 +54,11 @@ export const MedicationProvider = ({ children, navigation }) => {
     })();
   }, []);
 
-  // Добавление остатка
+  // Создание нового остатка
   const addStock = async (stock) => {
     try {
       const response = await fetchWithAuth(
-        'http://cloud-ru-test.netbird.cloud:8080/api/schedule/restock',
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan/restock',
         {
           method: 'POST',
           body: JSON.stringify(stock),
@@ -87,6 +72,7 @@ export const MedicationProvider = ({ children, navigation }) => {
     } catch (err) {
       console.error('Error adding stock:', err);
       setStocksError('Не удалось добавить остаток');
+      throw err;
     }
   };
 
@@ -94,7 +80,7 @@ export const MedicationProvider = ({ children, navigation }) => {
   const updateStock = async (id, updatedStock) => {
     try {
       const response = await fetchWithAuth(
-        `http://cloud-ru-test.netbird.cloud:8080/api/schedule/restock`,
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan/restock',
         {
           method: 'PUT',
           body: JSON.stringify({ id, ...updatedStock }),
@@ -109,6 +95,7 @@ export const MedicationProvider = ({ children, navigation }) => {
     } catch (err) {
       console.error('Error updating stock:', err);
       setStocksError('Не удалось обновить остаток');
+      throw err;
     }
   };
 
@@ -116,7 +103,7 @@ export const MedicationProvider = ({ children, navigation }) => {
   const deleteStock = async (id) => {
     try {
       await fetchWithAuth(
-        `http://cloud-ru-test.netbird.cloud:8080/api/schedule/restock/${id}`,
+        `http://cloud-ru-test.netbird.cloud:8080/api/plan/restock/${id}`,
         { method: 'DELETE' },
         navigation
       );
@@ -127,6 +114,7 @@ export const MedicationProvider = ({ children, navigation }) => {
     } catch (err) {
       console.error('Error deleting stock:', err);
       setStocksError('Не удалось удалить остаток');
+      throw err;
     }
   };
 
@@ -134,7 +122,7 @@ export const MedicationProvider = ({ children, navigation }) => {
   const getStock = async (id) => {
     try {
       const response = await fetchWithAuth(
-        `http://cloud-ru-test.netbird.cloud:8080/api/schedule/restock/${id}`,
+        `http://cloud-ru-test.netbird.cloud:8080/api/plan/restock/${id}`,
         { method: 'GET' },
         navigation
       );
@@ -143,38 +131,311 @@ export const MedicationProvider = ({ children, navigation }) => {
     } catch (err) {
       console.error('Error fetching stock:', err);
       setStocksError('Не удалось загрузить остаток');
-      return null;
+      throw err;
     }
   };
 
-  // Локальное управление медикаментами (без изменений)
-  const addMedication = (medication) => {
-    setMedications([...medications, medication]);
+  // --- Планы приёма (Plan) ---
+
+  // Создание обычного плана
+  const createPlan = async (plan) => {
+    try {
+      const response = await fetchWithAuth(
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan',
+        {
+          method: 'POST',
+          body: JSON.stringify(plan),
+        },
+        navigation
+      );
+      const newPlan = await response.json();
+      return newPlan;
+    } catch (err) {
+      console.error('Error creating plan:', err);
+      throw new Error('Не удалось создать план');
+    }
   };
 
-  const updateMedication = (id, updatedMedication) => {
-    setMedications(medications.map((med) => (med.id === id ? updatedMedication : med)));
+  // Создание кастомного плана
+  const createCustomPlan = async (customPlan) => {
+    try {
+      const response = await fetchWithAuth(
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan/custom',
+        {
+          method: 'POST',
+          body: JSON.stringify(customPlan),
+        },
+        navigation
+      );
+      const newPlan = await response.json();
+      return newPlan;
+    } catch (err) {
+      console.error('Error creating custom plan:', err);
+      throw new Error('Не удалось создать кастомный план');
+    }
   };
 
-  const deleteMedication = (id) => {
-    setMedications(medications.filter((med) => med.id !== id));
+  // Получение всех планов
+  const fetchPlans = async () => {
+    try {
+      const response = await fetchWithAuth(
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan',
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error('Error fetching plans:', err);
+      throw new Error('Не удалось загрузить планы');
+    }
+  };
+
+  // Получение одного плана
+  const fetchPlan = async (id) => {
+    try {
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/plan/${id}`,
+        { method: 'GET' },
+        navigation
+      );
+      const plan = await response.json();
+      return plan;
+    } catch (err) {
+      console.error('Error fetching plan:', err);
+      throw new Error('Не удалось загрузить план');
+    }
+  };
+
+  // Удаление плана
+  const deletePlan = async (id) => {
+    try {
+      await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/plan/${id}`,
+        { method: 'DELETE' },
+        navigation
+      );
+    } catch (err) {
+      console.error('Error deleting plan:', err);
+      throw new Error('Не удалось удалить план');
+    }
+  };
+
+  // Обновление обычного плана
+  const updatePlan = async (id, updatedPlan) => {
+    try {
+      const response = await fetchWithAuth(
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan',
+        {
+          method: 'PUT',
+          body: JSON.stringify({ id, ...updatedPlan }),
+        },
+        navigation
+      );
+      const updatedPlanData = await response.json();
+      return updatedPlanData;
+    } catch (err) {
+      console.error('Error updating plan:', err);
+      throw new Error('Не удалось обновить план');
+    }
+  };
+
+  // --- Уведомления (Notifications) ---
+
+  // Получение уведомлений на сегодня
+  const fetchTodayNotifications = async () => {
+    try {
+      const response = await fetchWithAuth(
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan/notifications/today',
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error('Error fetching today notifications:', err);
+      throw new Error('Не удалось загрузить уведомления на сегодня');
+    }
+  };
+
+  // Получение уведомлений на конкретный день
+  const fetchDayNotifications = async (day, month, year) => {
+    try {
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/plan/notifications/day/${day}/${month}/${year}`,
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error('Error fetching day notifications:', err);
+      throw new Error('Не удалось загрузить уведомления за день');
+    }
+  };
+
+  // Получение дней с приёмами в месяце
+  const fetchMonthNotificationDays = async (month, year) => {
+    try {
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/plan/notifications/month/${month}/${year}`,
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      return data.days || [];
+    } catch (err) {
+      console.error('Error fetching month notification days:', err);
+      return [];
+    }
+  };
+
+  // Подтверждение уведомления
+  const confirmNotification = async (id) => {
+    try {
+      await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/plan/notifications/${id}/confirm`,
+        { method: 'PATCH' },
+        navigation
+      );
+    } catch (err) {
+      console.error('Error confirming notification:', err);
+      throw new Error('Не удалось подтвердить уведомление');
+    }
+  };
+
+  // --- Медикаменты (Medications) ---
+
+  // Получение списка имён медикаментов
+  const fetchMedicationNames = async (isDietarySupplement = null) => {
+    try {
+      const url = new URL('http://cloud-ru-test.netbird.cloud:8080/api/medications/names');
+      if (isDietarySupplement !== null) {
+        url.searchParams.append('isDietarySupplement', isDietarySupplement);
+      }
+      const response = await fetchWithAuth(url.toString(), { method: 'GET' }, navigation);
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error('Error fetching medication names:', err);
+      throw new Error('Не удалось загрузить список медикаментов');
+    }
+  };
+
+  // Получение полной информации о медикаменте
+  const fetchMedicationDetails = async (name) => {
+    try {
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/medications/${encodeURIComponent(name)}`,
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error('Error fetching medication details:', err);
+      throw new Error('Не удалось загрузить информацию о медикаменте');
+    }
+  };
+
+  // Поиск медикаментов по префиксу
+  const searchMedications = async (prefix) => {
+    try {
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/medications/search?prefix=${encodeURIComponent(prefix)}`,
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      return data.names;
+    } catch (err) {
+      console.error('Error searching medications:', err);
+      throw new Error('Не удалось выполнить поиск медикаментов');
+    }
+  };
+
+  // Проверка существования медикамента
+  const checkMedicationExists = async (name) => {
+    try {
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/medications/exists/${encodeURIComponent(name)}`,
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error('Error checking medication existence:', err);
+      throw new Error('Не удалось проверить существование медикамента');
+    }
+  };
+
+  // Получение инструкции по медикаменту
+  const fetchMedicationInstruction = async (name) => {
+    try {
+      const response = await fetchWithAuth(
+        `http://cloud-ru-test.netbird.cloud:8080/api/medications/${encodeURIComponent(name)}/instruction`,
+        { method: 'GET' },
+        navigation
+      );
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error('Error fetching medication instruction:', err);
+      throw new Error('Не удалось загрузить инструкцию');
+    }
+  };
+
+  // Создание нового БАД
+  const createDietarySupplement = async (supplement) => {
+    try {
+      const response = await fetchWithAuth(
+        'http://cloud-ru-test.netbird.cloud:8080/api/medications/dietary-supplements',
+        {
+          method: 'POST',
+          body: JSON.stringify(supplement),
+        },
+        navigation
+      );
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error('Error creating dietary supplement:', err);
+      throw new Error('Не удалось создать БАД');
+    }
   };
 
   return (
     <MedicationContext.Provider
       value={{
-        medications,
-        addMedication,
-        updateMedication,
-        deleteMedication,
+        // Остатки
         stocks,
+        fetchStocks,
         addStock,
         updateStock,
         deleteStock,
         getStock,
         isLoadingStocks,
         stocksError,
-        fetchStocks,
+        // Планы
+        createPlan,
+        createCustomPlan,
+        fetchPlans,
+        fetchPlan,
+        deletePlan,
+        updatePlan,
+        // Уведомления
+        fetchTodayNotifications,
+        fetchDayNotifications,
+        fetchMonthNotificationDays,
+        confirmNotification,
+        // Медикаменты
+        fetchMedicationNames,
+        fetchMedicationDetails,
+        searchMedications,
+        checkMedicationExists,
+        fetchMedicationInstruction,
+        createDietarySupplement,
       }}
     >
       {children}
