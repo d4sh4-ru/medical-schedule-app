@@ -157,7 +157,7 @@ export const createGlobalStyles = (colors) =>
     navItemActive: {
       backgroundColor: colors.primary,
       borderRadius: 20,
-      padding: 8,
+      paddingVertical: 4,
     },
     navText: {
       color: colors.text,
