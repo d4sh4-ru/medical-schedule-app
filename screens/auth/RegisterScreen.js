@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Switch, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Switch,
+  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import { register } from '../../api/auth';
 
 export default function RegisterScreen({ navigation }) {
@@ -7,8 +19,8 @@ export default function RegisterScreen({ navigation }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [middleName, setMiddleName] = useState('');
-  const [displayPhoneNumber, setDisplayPhoneNumber] = useState(''); // Для отображения
-  const [rawPhoneNumber, setRawPhoneNumber] = useState(''); // Для отправки на сервер
+  const [displayPhoneNumber, setDisplayPhoneNumber] = useState('');
+  const [rawPhoneNumber, setRawPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [isRelative, setIsRelative] = useState(false);
   const [errors, setErrors] = useState({
@@ -30,52 +42,28 @@ export default function RegisterScreen({ navigation }) {
 
   // Регулярные выражения для валидации
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const nameRegex = /^[А-Я][а-я]{2,}$/;
-  const phoneRegex = /^\+7[0-9]{10}$/; // Формат +7 и 10 цифр
+  const phoneRegex = /^\+7[0-9]{10}$/;
 
   // Форматирование номера телефона
   const formatPhoneNumber = (text) => {
-    // Убираем всё, кроме цифр и знака +
     let cleaned = text.replace(/[^+\d]/g, '');
-
-    // Если строка пустая, возвращаем пустую строку
     if (!cleaned) {
       return { display: '', raw: '' };
     }
-
-    // Проверяем первый символ и корректируем номер
     if (cleaned.startsWith('+7')) {
-      cleaned = '7' + cleaned.slice(2); // Оставляем только цифры после +7
+      cleaned = '7' + cleaned.slice(2);
     } else if (cleaned.startsWith('8')) {
-      cleaned = '7' + cleaned.slice(1); // Заменяем 8 на 7
+      cleaned = '7' + cleaned.slice(1);
     } else if (cleaned.startsWith('9')) {
-      cleaned = '7' + cleaned; // Добавляем 7 перед 9
+      cleaned = '7' + cleaned;
     }
-
-    // Ограничиваем длину до 11 цифр (7 + 10 цифр)
     if (cleaned.length > 11) cleaned = cleaned.slice(0, 11);
-
-    // Формируем сырой формат для отправки (+7XXXXXXXXXX)
-    let raw = '';
-    if (cleaned.length > 0) {
-      raw = '+7' + cleaned.slice(1);
-    }
-
-    // Формируем человекочитаемый формат (+7 (XXX) XXX-XX-XX)
+    let raw = cleaned.length > 0 ? '+7' + cleaned.slice(1) : '';
     let display = '+7';
-    if (cleaned.length > 1) {
-      display += ' (' + cleaned.slice(1, 4);
-    }
-    if (cleaned.length >= 4) {
-      display += ') ' + cleaned.slice(4, 7);
-    }
-    if (cleaned.length >= 7) {
-      display += '-' + cleaned.slice(7, 9);
-    }
-    if (cleaned.length >= 9) {
-      display += '-' + cleaned.slice(9, 11);
-    }
-
+    if (cleaned.length > 1) display += ' (' + cleaned.slice(1, 4);
+    if (cleaned.length >= 4) display += ') ' + cleaned.slice(4, 7);
+    if (cleaned.length >= 7) display += '-' + cleaned.slice(7, 9);
+    if (cleaned.length >= 9) display += '-' + cleaned.slice(9, 11);
     return { display, raw };
   };
 
@@ -84,11 +72,13 @@ export default function RegisterScreen({ navigation }) {
     setDisplayPhoneNumber(display);
     setRawPhoneNumber(raw);
     if (touched.phoneNumber || errors.phoneNumber) {
-      setErrors(prev => ({ ...prev, phoneNumber: validateField('phoneNumber', raw) }));
+      setErrors((prev) => ({
+        ...prev,
+        phoneNumber: validateField('phoneNumber', raw),
+      }));
     }
   };
 
-  // Функция для капитализации первой буквы
   const capitalizeFirstLetter = (text) => {
     if (!text) return text;
     return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
@@ -98,7 +88,7 @@ export default function RegisterScreen({ navigation }) {
     switch (field) {
       case 'email':
         if (!value) return 'Email обязателен';
-        if (!emailRegex.test(value)) return 'Введите корректный email (например, example@domain.com)';
+        if (!emailRegex.test(value)) return 'Введите корректный email';
         return false;
       case 'firstName':
         if (!value) return 'Имя обязательно';
@@ -113,7 +103,7 @@ export default function RegisterScreen({ navigation }) {
         if (value.length < 3) return 'Фамилия должна содержать минимум 3 буквы';
         return false;
       case 'middleName':
-        if (!value) return false; // Отчество опционально
+        if (!value) return false;
         if (!/^[А-Я]/.test(value)) return 'Отчество должно начинаться с заглавной русской буквы';
         if (!/^[А-Я][а-я]*$/.test(value)) return 'Отчество должно содержать только русские буквы';
         if (value.length < 3) return 'Отчество должно содержать минимум 3 буквы';
@@ -121,8 +111,8 @@ export default function RegisterScreen({ navigation }) {
       case 'phoneNumber':
         if (!value) return false;
         if (!value.startsWith('+7')) return 'Номер должен начинаться с +7';
-        if (value.length !== 12) return 'Номер должен содержать ровно 10 цифр после +7';
-        if (!phoneRegex.test(value)) return 'Введите корректный номер телефона (например, +7 (999) 123-45-67)';
+        if (value.length !== 12) return 'Номер должен содержать 10 цифр после +7';
+        if (!phoneRegex.test(value)) return 'Введите корректный номер телефона';
         return false;
       case 'password':
         if (!value) return 'Пароль обязателен';
@@ -143,8 +133,7 @@ export default function RegisterScreen({ navigation }) {
       password: validateField('password', password),
     };
     setErrors(newErrors);
-
-    return !Object.values(newErrors).some(error => error);
+    return !Object.values(newErrors).some((error) => error);
   };
 
   const handleRegister = async () => {
@@ -156,22 +145,10 @@ export default function RegisterScreen({ navigation }) {
       phoneNumber: true,
       password: true,
     });
-
-    if (!validateFields()) {
-      return;
-    }
-
+    if (!validateFields()) return;
     try {
       const role = isRelative ? 'Relative' : 'Patient';
-      await register(
-        email,
-        password,
-        firstName,
-        lastName,
-        role,
-        middleName || undefined,
-        rawPhoneNumber || undefined // Отправляем rawPhoneNumber в формате +7XXXXXXXXXX
-      );
+      await register(email, password, firstName, lastName, role, middleName || undefined, rawPhoneNumber || undefined);
       alert('Регистрация успешна!');
       navigation.navigate('Login');
     } catch (error) {
@@ -180,151 +157,188 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Регистрация</Text>
-      <View>
-        <TextInput
-          style={[styles.input, errors.email && touched.email && styles.inputError]}
-          placeholder="Email*"
-          value={email}
-          onChangeText={text => {
-            setEmail(text);
-            if (touched.email || errors.email) {
-              setErrors(prev => ({ ...prev, email: validateField('email', text) }));
-            }
-          }}
-          onBlur={() => {
-            setTouched(prev => ({ ...prev, email: true }));
-            setErrors(prev => ({ ...prev, email: validateField('email', email) }));
-          }}
-          keyboardType="email-address"
-          placeholderTextColor="#999"
-        />
-        {errors.email && touched.email && <Text style={styles.errorText}>{errors.email}</Text>}
-      </View>
-      <View>
-        <TextInput
-          style={[styles.input, errors.firstName && touched.firstName && styles.inputError]}
-          placeholder="Имя*"
-          value={firstName}
-          onChangeText={text => {
-            const capitalized = capitalizeFirstLetter(text);
-            setFirstName(capitalized);
-            if (touched.firstName || errors.firstName) {
-              setErrors(prev => ({ ...prev, firstName: validateField('firstName', capitalized) }));
-            }
-          }}
-          onBlur={() => {
-            setTouched(prev => ({ ...prev, firstName: true }));
-            setErrors(prev => ({ ...prev, firstName: validateField('firstName', firstName) }));
-          }}
-          placeholderTextColor="#999"
-        />
-        {errors.firstName && touched.firstName && <Text style={styles.errorText}>{errors.firstName}</Text>}
-      </View>
-      <View>
-        <TextInput
-          style={[styles.input, errors.lastName && touched.lastName && styles.inputError]}
-          placeholder="Фамилия*"
-          value={lastName}
-          onChangeText={text => {
-            const capitalized = capitalizeFirstLetter(text);
-            setLastName(capitalized);
-            if (touched.lastName || errors.lastName) {
-              setErrors(prev => ({ ...prev, lastName: validateField('lastName', capitalized) }));
-            }
-          }}
-          onBlur={() => {
-            setTouched(prev => ({ ...prev, lastName: true }));
-            setErrors(prev => ({ ...prev, lastName: validateField('lastName', lastName) }));
-          }}
-          placeholderTextColor="#999"
-        />
-        {errors.lastName && touched.lastName && <Text style={styles.errorText}>{errors.lastName}</Text>}
-      </View>
-      <View>
-        <TextInput
-          style={[styles.input, errors.middleName && touched.middleName && styles.inputError]}
-          placeholder="Отчество"
-          value={middleName}
-          onChangeText={text => {
-            const capitalized = capitalizeFirstLetter(text);
-            setMiddleName(capitalized);
-            if (touched.middleName || errors.middleName) {
-              setErrors(prev => ({ ...prev, middleName: validateField('middleName', capitalized) }));
-            }
-          }}
-          onBlur={() => {
-            setTouched(prev => ({ ...prev, middleName: true }));
-            setErrors(prev => ({ ...prev, middleName: validateField('middleName', middleName) }));
-          }}
-          placeholderTextColor="#999"
-        />
-        {errors.middleName && touched.middleName && <Text style={styles.errorText}>{errors.middleName}</Text>}
-      </View>
-      <View>
-        <TextInput
-          style={[styles.input, errors.phoneNumber && touched.phoneNumber && styles.inputError]}
-          placeholder="+7 (XXX) XXX-XX-XX"
-          value={displayPhoneNumber} // Отображаем человекочитаемый формат
-          onChangeText={handlePhoneChange}
-          onBlur={() => {
-            setTouched(prev => ({ ...prev, phoneNumber: true }));
-            setErrors(prev => ({ ...prev, phoneNumber: validateField('phoneNumber', rawPhoneNumber) }));
-          }}
-          keyboardType="phone-pad"
-          placeholderTextColor="#999"
-        />
-        {errors.phoneNumber && touched.phoneNumber && (
-          <Text style={styles.errorText}>{errors.phoneNumber}</Text>
-        )}
-      </View>
-      <View>
-        <TextInput
-          style={[styles.input, errors.password && touched.password && styles.inputError]}
-          placeholder="Пароль*"
-          value={password}
-          onChangeText={text => {
-            setPassword(text);
-            if (touched.password || errors.password) {
-              setErrors(prev => ({ ...prev, password: validateField('password', text) }));
-            }
-          }}
-          onBlur={() => {
-            setTouched(prev => ({ ...prev, password: true }));
-            setErrors(prev => ({ ...prev, password: validateField('password', password) }));
-          }}
-          secureTextEntry
-          placeholderTextColor="#999"
-        />
-        {errors.password && touched.password && <Text style={styles.errorText}>{errors.password}</Text>}
-      </View>
-      <View style={styles.switchContainer}>
-        <Switch
-          value={isRelative}
-          onValueChange={setIsRelative}
-          trackColor={{ false: '#999', true: '#007AFF' }}
-          thumbColor={isRelative ? '#fff' : '#fff'}
-          ios_backgroundColor="#999"
-        />
-        <Text style={styles.switchLabel}>Я буду отслеживать приём лекарств другого пользователя</Text>
-      </View>
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Подтвердить</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Уже есть аккаунт? Войти</Text>
-      </TouchableOpacity>
-    </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>Регистрация</Text>
+          <View>
+            <TextInput
+              style={[styles.input, errors.email && touched.email && styles.inputError]}
+              placeholder="Email*"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (touched.email || errors.email) {
+                  setErrors((prev) => ({ ...prev, email: validateField('email', text) }));
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, email: true }));
+                setErrors((prev) => ({ ...prev, email: validateField('email', email) }));
+              }}
+              keyboardType="email-address"
+              placeholderTextColor="#999"
+            />
+            {errors.email && touched.email && <Text style={styles.errorText}>{errors.email}</Text>}
+          </View>
+          <View>
+            <TextInput
+              style={[styles.input, errors.firstName && touched.firstName && styles.inputError]}
+              placeholder="Имя*"
+              value={firstName}
+              onChangeText={(text) => {
+                const capitalized = capitalizeFirstLetter(text);
+                setFirstName(capitalized);
+                if (touched.firstName || errors.firstName) {
+                  setErrors((prev) => ({
+                    ...prev,
+                    firstName: validateField('firstName', capitalized),
+                  }));
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, firstName: true }));
+                setErrors((prev) => ({ ...prev, firstName: validateField('firstName', firstName) }));
+              }}
+              placeholderTextColor="#999"
+            />
+            {errors.firstName && touched.firstName && (
+              <Text style={styles.errorText}>{errors.firstName}</Text>
+            )}
+          </View>
+          <View>
+            <TextInput
+              style={[styles.input, errors.lastName && touched.lastName && styles.inputError]}
+              placeholder="Фамилия*"
+              value={lastName}
+              onChangeText={(text) => {
+                const capitalized = capitalizeFirstLetter(text);
+                setLastName(capitalized);
+                if (touched.lastName || errors.lastName) {
+                  setErrors((prev) => ({
+                    ...prev,
+                    lastName: validateField('lastName', capitalized),
+                  }));
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, lastName: true }));
+                setErrors((prev) => ({ ...prev, lastName: validateField('lastName', lastName) }));
+              }}
+              placeholderTextColor="#999"
+            />
+            {errors.lastName && touched.lastName && (
+              <Text style={styles.errorText}>{errors.lastName}</Text>
+            )}
+          </View>
+          <View>
+            <TextInput
+              style={[styles.input, errors.middleName && touched.middleName && styles.inputError]}
+              placeholder="Отчество"
+              value={middleName}
+              onChangeText={(text) => {
+                const capitalized = capitalizeFirstLetter(text);
+                setMiddleName(capitalized);
+                if (touched.middleName || errors.middleName) {
+                  setErrors((prev) => ({
+                    ...prev,
+                    middleName: validateField('middleName', capitalized),
+                  }));
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, middleName: true }));
+                setErrors((prev) => ({ ...prev, middleName: validateField('middleName', middleName) }));
+              }}
+              placeholderTextColor="#999"
+            />
+            {errors.middleName && touched.middleName && (
+              <Text style={styles.errorText}>{errors.middleName}</Text>
+            )}
+          </View>
+          <View>
+            <TextInput
+              style={[styles.input, errors.phoneNumber && touched.phoneNumber && styles.inputError]}
+              placeholder="+7 (XXX) XXX-XX-XX"
+              value={displayPhoneNumber}
+              onChangeText={handlePhoneChange}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, phoneNumber: true }));
+                setErrors((prev) => ({
+                  ...prev,
+                  phoneNumber: validateField('phoneNumber', rawPhoneNumber),
+                }));
+              }}
+              keyboardType="phone-pad"
+              placeholderTextColor="#999"
+            />
+            {errors.phoneNumber && touched.phoneNumber && (
+              <Text style={styles.errorText}>{errors.phoneNumber}</Text>
+            )}
+          </View>
+          <View>
+            <TextInput
+              style={[styles.input, errors.password && touched.password && styles.inputError]}
+              placeholder="Пароль*"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (touched.password || errors.password) {
+                  setErrors((prev) => ({ ...prev, password: validateField('password', text) }));
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, password: true }));
+                setErrors((prev) => ({ ...prev, password: validateField('password', password) }));
+              }}
+              secureTextEntry
+              placeholderTextColor="#999"
+            />
+            {errors.password && touched.password && (
+              <Text style={styles.errorText}>{errors.password}</Text>
+            )}
+          </View>
+          <View style={styles.switchContainer}>
+            <Switch
+              value={isRelative}
+              onValueChange={setIsRelative}
+              trackColor={{ false: '#999', true: '#007AFF' }}
+              thumbColor={isRelative ? '#fff' : '#fff'}
+              ios_backgroundColor="#999"
+            />
+            <Text style={styles.switchLabel}>
+              Я буду отслеживать приём лекарств другого пользователя
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Подтвердить</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.link}>Уже есть аккаунт? Войти</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
     backgroundColor: '#fff',
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 28,
