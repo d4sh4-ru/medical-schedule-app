@@ -7,7 +7,6 @@ import {
   ScrollView,
   Alert,
   Modal,
-  FlatList,
   Platform,
   SafeAreaView,
 } from 'react-native';
@@ -18,6 +17,8 @@ import { createGlobalStyles } from '../../styles/globalStyles';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import { fetchWithAuth } from '../../utils/api';
+import AutocompleteInput from '../../components/AutocompleteInput';
+
 
 export default function ScheduleFormScreen() {
   const { theme } = useTheme();
@@ -68,16 +69,16 @@ export default function ScheduleFormScreen() {
   const fetchScheduleDetails = async (scheduleId) => {
     try {
       const response = await fetchWithAuth(
-        `http://cloud-ru-test.netbird.cloud:8080/api/schedule/${scheduleId}`,
+        `http://cloud-ru-test.netbird.cloud:8080/api/plan/${scheduleId}`,
         { method: 'GET' },
         navigation
       );
       const data = await response.json();
       setName(data.medicationTradeName);
-      setTabletCount(data.administrationMethod.singleDosageTablets.toString());
-      setTabletDosage(parseInt(data.administrationMethod.singleDosage).toString());
+      setTabletCount(data.singleDosageTablets.toString());
+      setTabletDosage(parseInt(data.singleDosage).toString());
       setTimes(
-        data.administrationMethod.administrationTimes.split(',').map((time) => {
+        data.administrationTimes.split(',').map((time) => {
           const [hours, minutes] = time.split(':').map(Number);
           const date = new Date();
           date.setHours(hours, minutes, 0, 0);
@@ -88,8 +89,7 @@ export default function ScheduleFormScreen() {
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
       });
-      setAdministrationMethodId(data.administrationMethod.id);
-      // Пометим даты в календаре
+      setAdministrationMethodId(data.id); // Сохраняем ID для редактирования
       const newMarkedDates = {};
       let currentDate = new Date(data.startDate);
       const endDate = new Date(data.endDate);
@@ -189,11 +189,9 @@ export default function ScheduleFormScreen() {
     if (selectedTime) {
       setTempTime(selectedTime);
     }
-    // На iOS событие 'dismissed' может срабатывать при прокрутке спиннера, игнорируем его
     if (event.type === 'dismissed' && Platform.OS === 'ios') {
       return;
     }
-    // На Android 'dismissed' срабатывает при отмене, но мы хотим закрывать только по кнопке "Закрыть"
     if (event.type === 'dismissed' && Platform.OS === 'android') {
       return;
     }
@@ -238,8 +236,7 @@ export default function ScheduleFormScreen() {
   // Форматирование даты для API
   const formatDateForApi = (date) => {
     if (!date) return null;
-    const offset = '+03:00';
-    return `${date.toISOString().split('T')[0]}T00:00:00${offset}`;
+    return `${date.toISOString().split('T')[0]}T00:00:00Z`;
   };
 
   // Форматирование времён для API
@@ -263,34 +260,34 @@ export default function ScheduleFormScreen() {
       Alert.alert('Ошибка', 'Выберите дату окончания');
       return;
     }
+    if (!tabletCount || isNaN(parseInt(tabletCount)) || parseInt(tabletCount) <= 0) {
+      Alert.alert('Ошибка', 'Введите корректное количество таблеток');
+      return;
+    }
+    if (!tabletDosage || isNaN(parseInt(tabletDosage)) || parseInt(tabletDosage) <= 0) {
+      Alert.alert('Ошибка', 'Введите корректную дозировку');
+      return;
+    }
 
     const medicationData = {
       medicationTradeName: name,
       startDate: formatDateForApi(dateRange.startDate),
       endDate: formatDateForApi(dateRange.endDate),
-      administrationMethod: {
-        medicationTradeName: name,
-        singleDosage: `${parseInt(tabletDosage)} мг`,
-        singleDosageTablets: parseInt(tabletCount),
-        interval: 1,
-        administrationTimes: formatTimesForApi(times),
-      },
+      singleDosage: `${parseInt(tabletDosage)}` + ` мг`,
+      singleDosageTablets: parseInt(tabletCount),
+      timeZone: 3,
+      interval: 1,
+      administrationTimes: formatTimesForApi(times),
     };
 
     if (isEditing) {
-      if (!administrationMethodId) {
-        Alert.alert('Ошибка', 'Не удалось определить ID метода приёма');
-        return;
-      }
       medicationData.id = scheduleId;
-      medicationData.administrationMethod.id = administrationMethodId;
-      medicationData.administrationMethodID = 0;
     }
 
     try {
       const method = isEditing ? 'PUT' : 'POST';
       const response = await fetchWithAuth(
-        'http://cloud-ru-test.netbird.cloud:8080/api/schedule',
+        'http://cloud-ru-test.netbird.cloud:8080/api/plan',
         {
           method,
           headers: {
@@ -327,11 +324,10 @@ export default function ScheduleFormScreen() {
         >
           <View style={[styles.modalContainer, { justifyContent: 'center', padding: 16 }]}>
             <View style={[styles.modalContent, { maxHeight: '60%', borderRadius: 12, padding: 16 }]}>
-              <FlatList
-                data={options}
-                keyExtractor={(item) => item.value}
-                renderItem={({ item }) => (
+              <ScrollView>
+                {options.map((item) => (
                   <TouchableOpacity
+                    key={item.value}
                     style={styles.modalItem}
                     onPress={() => onSelect(item.value)}
                   >
@@ -339,8 +335,8 @@ export default function ScheduleFormScreen() {
                       {item.label}
                     </Text>
                   </TouchableOpacity>
-                )}
-              />
+                ))}
+              </ScrollView>
               <TouchableOpacity
                 style={[styles.markButton, { marginBottom: 16 }]}
                 onPress={() => setShowDosagePicker(false)}
@@ -472,12 +468,13 @@ export default function ScheduleFormScreen() {
       <ScrollView style={[styles.container, { paddingBottom: 80 }]}>
         <Text style={styles.title}>{isEditing ? 'Редактирование приёма' : 'Добавление приёма'}</Text>
         <Text style={styles.bodyText}>Название препарата</Text>
-        <TextInput
-          style={styles.input}
+        <AutocompleteInput
           value={name}
           onChangeText={setName}
           placeholder="Введите название"
-          placeholderTextColor={theme.colors.text + '66'}
+          theme={theme}
+          navigation={navigation}
+          style={styles.input}
         />
         <Text style={styles.bodyText}>Количество таблеток</Text>
         <TextInput
