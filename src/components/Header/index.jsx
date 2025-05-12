@@ -3,7 +3,17 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../../constants/globalStyles';
 
-const Header = ({ date, onSettingsPress, onCalendarPress }) => {
+const Header = ({ date, onSettingsPress, onCalendarPress, onHomePress, showHomeIcon }) => {
+  if (showHomeIcon) {
+    return (
+      <View style={styles.header.singleIconContainer}>
+        <TouchableOpacity onPress={onHomePress}>
+          <Ionicons name="home-outline" size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.header.container}>
       <TouchableOpacity onPress={onSettingsPress}>

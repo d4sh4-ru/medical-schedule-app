@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { getWeekDaysForCalendar, getTodayFormatted } from '../utils/dateUtils';
 import { getNotificationsForToday, getNotificationsForDay, confirmUserNotification } from '../services/notificationService';
 import NavBar from '../components/NavBar';
@@ -12,6 +13,7 @@ import styles from '../constants/globalStyles';
 const HomeScreen = () => {
   const today = useMemo(() => new Date(), []);
   const [selectedDate, setSelectedDate] = useState(today);
+  const navigation = useNavigation();
   const [weeks, setWeeks] = useState(generateWeeks(today));
   const [notifications, setNotifications] = useState([]);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
@@ -120,7 +122,7 @@ const HomeScreen = () => {
       <Header
         date={getTodayFormatted(selectedDate)}
         onSettingsPress={() => console.log('Settings pressed')}
-        onCalendarPress={() => console.log('Calendar pressed')}
+        onCalendarPress={() => navigation.navigate('Calendar')}
       />
       <WeekCalendar
         weeks={weeks}

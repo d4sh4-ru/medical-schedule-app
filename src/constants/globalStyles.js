@@ -258,6 +258,7 @@ export const createGlobalStyles = (colors) =>
 import { Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
+const dayWidth = (width - 32) / 7; // Фиксированная ширина дня
 
 const globalStyles = StyleSheet.create({
   // Общие стили для переиспользования
@@ -352,6 +353,15 @@ const globalStyles = StyleSheet.create({
       borderBottomWidth: 1,
       borderBottomColor: '#eee',
     },
+    singleIconContainer: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+    },
     date: {
       fontSize: 18,
       fontWeight: '600',
@@ -421,6 +431,71 @@ const globalStyles = StyleSheet.create({
     },
     list: {
       paddingBottom: 16,
+    },
+  },
+  // Стили для CalendarScreen
+  calendarScreen: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+    monthContainer: {
+      padding: 16,
+    },
+    monthLabel: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginBottom: 12,
+    },
+    weekdaysContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+      width: width - 32,
+    },
+    weekdayLabel: {
+      fontSize: 14,
+      color: '#666',
+      width: dayWidth,
+      minWidth: dayWidth,
+      maxWidth: dayWidth,
+      textAlign: 'center',
+    },
+    daysContainer: {
+      width: width - 32,
+    },
+    weekContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    dayContainer: {
+      width: dayWidth,
+      minWidth: dayWidth,
+      maxWidth: dayWidth,
+      height: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    dayNumber: {
+      fontSize: 16,
+      color: '#000',
+    },
+    todayDayNumber: {
+      fontWeight: '700',
+    },
+    selectedDayContainer: {
+      backgroundColor: '#007AFF',
+      borderRadius: 30,
+    },
+    selectedDayNumber: {
+      color: '#fff',
+      fontWeight: '700',
+    },
+    emptyDay: {
+      width: dayWidth,
+      minWidth: dayWidth,
+      maxWidth: dayWidth,
+      height: 40,
     },
   },
   // Стили для HomeScreen

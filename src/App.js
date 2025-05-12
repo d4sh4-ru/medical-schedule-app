@@ -2,9 +2,11 @@ import 'react-native-gesture-handler';
 import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
 import { ThemeProvider, useTheme } from './theme/ThemeProvider';
 import { createStackNavigator } from '@react-navigation/stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import RegisterScreen from './screens/auth/RegisterScreen';
 import LoginScreen from './screens/auth/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
+import CalendarScreen from './screens/CalendarScreen';
 import ScheduleScreen from './screens/schedule/ScheduleScreen';
 import ScheduleFormScreen from './screens/schedule/ScheduleFormScreen';
 import StockScreen from './screens/stock/StockScreen';
@@ -58,6 +60,11 @@ const protectedRoutes = [
     options: {headerLeft: () => null, headerShown: false},
   },
   {
+    name: 'Calendar',
+    component: CalendarScreen,
+    options: { title: 'Календарь', headerLeft: () => null, headerShown: false },
+  },
+  {
     name: 'Schedule',
     component: ScheduleScreen,
     options: { title: 'Расписание', headerLeft: () => null },
@@ -105,6 +112,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <NavigationContainer ref={navigationRef}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack.Navigator
           initialRouteName='Home'
           screenOptions={{
@@ -139,6 +147,7 @@ export default function App() {
             </Stack.Screen>
           ))}
         </Stack.Navigator>
+        </GestureHandlerRootView>
       </NavigationContainer>
     </ThemeProvider>
   );
