@@ -1,0 +1,60 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = (theme) =>
+  StyleSheet.create({
+    container: {
+      position: 'relative',
+    },
+    input: {
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      padding: 12,
+      fontSize: 16,
+      color: theme.colors.text,
+      backgroundColor: theme.colors.background,
+    },
+    suggestionContainer: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      backgroundColor: theme.colors.background,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderTopWidth: 0,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
+      maxHeight: 150,
+      elevation: 5,
+    //   shadowColor: '#000',
+    //   shadowOffset: { width: 0, height: 2 },
+    //   shadowOpacity: 0.2,
+    //   shadowRadius: 4,
+      zIndex: 1000,
+    },
+    suggestionItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    suggestionText: {
+      fontSize: 16,
+      color: theme.colors.text,
+    },
+    loadingContainer: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      backgroundColor: theme.colors.background,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderTopWidth: 0,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: 50,
+      elevation: 5,
+      zIndex: 1000,
+    },
+  });
