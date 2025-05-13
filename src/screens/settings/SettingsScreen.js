@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Switch, FlatList } from 'react-native';
+import { SafeAreaView, Text, TouchableOpacity, Switch, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 import styles from '../../constants/globalStyles';
 import Header from '../../components/Header';
-import NavBar from '../../components/NavBar';
 import { fetchLinkedUsers } from '../../api/userApi';
 import { clearLogout } from '../../services/userService';
 
@@ -45,7 +44,7 @@ export default function SettingsScreen() {
   );
 
   return (
-    <View style={[styles.settingsScreen.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.settingsScreen.container, { backgroundColor: theme.colors.background }]}>
       <Header
         title="Настройки"
         onLeftPress={() => navigation.navigate('Home')}
@@ -99,6 +98,6 @@ export default function SettingsScreen() {
           <Text style={[styles.common.text, { color: theme.colors.error }]}>Выйти из профиля</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

@@ -19,10 +19,10 @@ export default function NavBar() {
   const route = useRoute();
 
   const navItems = [
-    { name: 'Stock', label: 'Запасы', icon: StockIcon },
-    { name: 'Analytics', label: 'Аналитика', icon: AnalyticsIcon },
     { name: 'Home', label: 'Главная', icon: HomeIcon },
     { name: 'Schedule', label: 'Расписание', icon: ScheduleIcon },
+    { name: 'Stock', label: 'Запасы', icon: StockIcon },
+    { name: 'Analytics', label: 'Аналитика', icon: AnalyticsIcon },
   ];
 
   return (

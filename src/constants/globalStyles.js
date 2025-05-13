@@ -589,6 +589,17 @@ const globalStyles = StyleSheet.create({
       flexWrap: 'wrap',
     },
   },
+  scheduleListScreen: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+    listContainer: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+  },
 });
 
 export default globalStyles;

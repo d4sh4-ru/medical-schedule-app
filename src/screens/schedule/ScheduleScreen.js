@@ -4,7 +4,6 @@ import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 import styles from '../../constants/globalStyles';
-import { FAB } from 'react-native-elements';
 import NavBar from '../../components/NavBar';
 import Header from '../../components/Header';
 import NotificationsList from '../../components/NotificationsList';
@@ -247,7 +246,9 @@ export default function ScheduleScreen() {
       <Header
         title="Расписания приёмов"
         leftIconName="list-outline"
-        onLeftPress={() => navigation.navigate('Menu')}
+        onLeftPress={() => navigation.navigate('ScheduleList')}
+        rightIconName="add-circle-outline"
+        onRightPress={() => navigation.navigate('ScheduleForm')}
       />
       <Calendar
         style={styles.scheduleScreen.calendar}
@@ -297,19 +298,6 @@ export default function ScheduleScreen() {
         }}
         onDelete={() => handleDelete(selectedNotification?.planId)}
         theme={theme}
-      />
-      <FAB
-        title="+"
-        placement="right"
-        color={theme.colors.primary}
-        onPress={() => navigation.navigate('ScheduleForm')}
-        buttonStyle={{ borderRadius: 50, width: 60, height: 60 }}
-        titleStyle={{ fontSize: 24 }}
-        containerStyle={{
-          position: 'absolute',
-          bottom: 80,
-          right: 10,
-        }}
       />
       <NavBar />
     </SafeAreaView>

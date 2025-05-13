@@ -9,6 +9,7 @@ import HomeScreen from './screens/HomeScreen';
 import CalendarScreen from './screens/CalendarScreen';
 import ScheduleScreen from './screens/schedule/ScheduleScreen';
 import ScheduleFormScreen from './screens/schedule/ScheduleFormScreen';
+import ScheduleListScreen from './screens/schedule/ScheduleListScreen';
 import StockScreen from './screens/stock/StockScreen';
 import StockFormScreen from './screens/stock/StockFormScreen';
 import SettingsScreen from './screens/settings/SettingsScreen';
@@ -88,6 +89,11 @@ const protectedRoutes = [
     name: 'ScheduleForm',
     component: ScheduleFormScreen,
     options: { title: 'Приём' },
+  },
+  {
+    name: 'ScheduleList',
+    component: ScheduleListScreen,
+    options: { title: 'Расписание врача', headerLeft: () => null, headerShown: false },
   },
   {
     name: 'StockForm',
