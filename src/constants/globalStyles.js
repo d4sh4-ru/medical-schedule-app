@@ -258,10 +258,9 @@ export const createGlobalStyles = (colors) =>
 import { Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const dayWidth = (width - 32) / 7; // Фиксированная ширина дня
+const dayWidth = (width - 32) / 7;
 
 const globalStyles = StyleSheet.create({
-  // Общие стили для переиспользования
   common: {
     card: {
       flexDirection: 'row',
@@ -342,7 +341,6 @@ const globalStyles = StyleSheet.create({
       marginBottom: 8,
     },
   },
-  // Стили для компонента Header
   header: {
     container: {
       flexDirection: 'row',
@@ -367,7 +365,6 @@ const globalStyles = StyleSheet.create({
       fontWeight: '600',
     },
   },
-  // Стили для компонента WeekCalendar
   weekCalendar: {
     container: {
       padding: 16,
@@ -422,7 +419,6 @@ const globalStyles = StyleSheet.create({
       fontWeight: '700',
     },
   },
-  // Стили для компонента NotificationsList
   notificationsList: {
     container: {
       flex: 1,
@@ -433,7 +429,6 @@ const globalStyles = StyleSheet.create({
       paddingBottom: 16,
     },
   },
-  // Стили для CalendarScreen
   calendarScreen: {
     container: {
       flex: 1,
@@ -485,7 +480,7 @@ const globalStyles = StyleSheet.create({
     },
     selectedDayContainer: {
       backgroundColor: '#007AFF',
-      borderRadius: 30,
+      borderRadius: 20,
     },
     selectedDayNumber: {
       color: '#fff',
@@ -498,14 +493,12 @@ const globalStyles = StyleSheet.create({
       height: 40,
     },
   },
-  // Стили для HomeScreen
   homeScreen: {
     container: {
       flex: 1,
       backgroundColor: '#fff',
     },
   },
-  // Стили для SettingsScreen
   settingsScreen: {
     container: {
       flex: 1,
@@ -514,6 +507,86 @@ const globalStyles = StyleSheet.create({
     settingsContainer: {
       flex: 1,
       padding: 16,
+    },
+  },
+  scheduleScreen: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+    calendar: {
+      marginHorizontal: 16,
+      marginBottom: 16,
+      borderRadius: 8,
+      overflow: 'hidden',
+    },
+    notificationsContainer: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+      backgroundColor: '#fff',
+      borderRadius: 12,
+      padding: 20,
+      width: '90%',
+      maxHeight: '80%',
+      elevation: 5,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#000',
+      marginBottom: 10,
+    },
+    modalText: {
+      fontSize: 16,
+      color: '#000',
+      marginBottom: 8,
+    },
+    modalButtonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
+    },
+    modalButton: {
+      flex: 1,
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginHorizontal: 5,
+    },
+    modalButtonText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#fff',
+    },
+    timeItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    timeText: {
+      fontSize: 16,
+      color: '#000',
+      marginLeft: 8,
+    },
+    dateContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+      flexWrap: 'wrap',
+    },
+    dateText: {
+      fontSize: 14,
+      color: '#000',
+      marginLeft: 8,
+      flexWrap: 'wrap',
     },
   },
 });

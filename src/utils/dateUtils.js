@@ -107,3 +107,25 @@ export function generateMonths(year) {
     }
     return months;
   }
+
+  // Форматирование времени
+ export const formatTime = (time) => {
+    const date = new Date(time);
+    if (isNaN(date.getTime())) {
+      return 'Неверное время';
+    }
+    return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+  };
+
+  // Форматирование даты
+ export const formatDate = (date) => {
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return 'Неверная дата';
+    }
+    return parsedDate.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };

@@ -11,6 +11,7 @@ const NotificationsList = ({
   selectedDate,
   onRefresh,
   onConfirmNotification,
+  onNotificationPress,
   isRetrying,
   getTodayFormatted,
   //TODO: добавить тип с кнопкой или со статусами
@@ -29,12 +30,17 @@ const NotificationsList = ({
 
     console.log('Rendering notification:', item);
 
+    // Условно выбираем компонент: TouchableOpacity, если есть onNotificationPress, иначе View
+    const CardComponent = onNotificationPress ? TouchableOpacity : View;
+
     return (
-      <View
+      <CardComponent
         style={[
           styles.common.card,
           isTaken ? styles.common.cardCompleted : isOverdue && styles.common.cardOverdue,
         ]}
+        onPress={onNotificationPress ? () => onNotificationPress(item) : undefined}
+        activeOpacity={0.7} // Для визуального отклика при нажатии
       >
         <View>
           <Text style={styles.common.text}>{item.medicationTradeName || 'Без названия'}</Text>
@@ -56,7 +62,7 @@ const NotificationsList = ({
             {isTaken ? 'Принято' : isPending ? 'Ожидает' : 'Отметить'}
           </Text>
         </TouchableOpacity>
-      </View>
+      </CardComponent>
     );
   };
 
