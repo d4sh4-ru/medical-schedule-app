@@ -426,7 +426,7 @@ const globalStyles = StyleSheet.create({
       paddingTop: 16,
     },
     list: {
-      paddingBottom: 16,
+      paddingBottom: 80, // Увеличен для NavBar и FAB
     },
   },
   calendarScreen: {
@@ -599,6 +599,31 @@ const globalStyles = StyleSheet.create({
       paddingHorizontal: 16,
       paddingTop: 16,
     },
+  },
+  navBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    backgroundColor: '#fff',
+  },
+  navItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  navItemActive: {
+    backgroundColor: '#f0f0f0',
+  },
+  navText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  navTextActive: {
+    color: '#007AFF',
+    fontWeight: '600',
   },
 });
 
