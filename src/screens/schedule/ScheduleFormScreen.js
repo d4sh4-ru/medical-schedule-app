@@ -12,8 +12,7 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useTheme } from '../../theme/ThemeProvider';
-import { createGlobalStyles } from '../../constants/globalStyles';
+import styles from '../../constants/globalStyles';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
@@ -21,8 +20,6 @@ import AutocompleteInput from '../../components/AutocompleteInput';
 
 
 export default function ScheduleFormScreen() {
-  const { theme } = useTheme();
-  const styles = createGlobalStyles(theme.colors);
   const route = useRoute();
   const navigation = useNavigation();
   const scheduleId = route.params?.scheduleId;

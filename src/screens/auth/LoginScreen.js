@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { loginUser } from '../../services/userService';
-import { useTheme } from '../../theme/ThemeProvider';
-import { createGlobalStyles } from '../../constants/globalStyles';
+import styles from '../../constants/globalStyles';
 
 export default function LoginScreen({ navigation }) {
   const ERROR_MESSAGES = {
@@ -11,9 +10,6 @@ export default function LoginScreen({ navigation }) {
     SERVER_ERROR: 'Ошибка сервера, попробуйте позже',
     NETWORK_ERROR: 'Проблемы с интернет-соединением',
   };  
-
-  const { theme } = useTheme();
-  const styles = createGlobalStyles(theme.colors);
 
   // Отключаем шапку
   useEffect(() => {

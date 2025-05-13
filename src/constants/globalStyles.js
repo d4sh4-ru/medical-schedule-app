@@ -1,267 +1,14 @@
-import { StyleSheet } from 'react-native';
-
-export const createGlobalStyles = (colors) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.secondary,
-      paddingHorizontal: 16,
-      paddingTop: 24,
-      paddingBottom: 80,
-    },
-    card: {
-      backgroundColor: colors.background,
-      borderRadius: 12,
-      padding: 16,
-      marginVertical: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      elevation: 3,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    cardOverdue: {
-      borderColor: colors.error,
-    },
-    cardCompleted: {
-      borderColor: colors.accent,
-      opacity: 0.7,
-    },
-    settingsCard: {
-      backgroundColor: colors.background,
-      borderRadius: 12,
-      padding: 16,
-      marginVertical: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      elevation: 3,
-    },
-    addButton: {
-      backgroundColor: colors.primary,
-      borderRadius: 50,
-      width: 56,
-      height: 56,
-      justifyContent: 'center',
-      alignItems: 'center',
-      position: 'absolute',
-      bottom: 100,
-      right: 16,
-      boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-      elevation: 5,
-    },
-    addButtonText: {
-      color: colors.background,
-      fontSize: 24,
-      fontWeight: 'bold',
-    },
-    cardActions: {
-      flexDirection: 'row',
-      gap: 12,
-      alignItems: 'center',
-    },
-    title: {
-      color: colors.text,
-      fontSize: 28,
-      fontWeight: 'bold',
-      marginBottom: 16,
-    },
-    bodyText: {
-      color: colors.text,
-      fontSize: 16,
-    },
-    captionText: {
-      color: colors.text,
-      fontSize: 14,
-      opacity: 0.7,
-    },
-    overdueText: {
-      color: colors.error,
-      fontSize: 14,
-      fontWeight: 'bold',
-    },
-    markButton: {
-      backgroundColor: colors.primary,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      alignItems: 'center',
-    },
-    markButtonCompleted: {
-      backgroundColor: colors.accent,
-    },
-    markButtonText: {
-      color: colors.background,
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    actionButton: {
-      padding: 8,
-      marginLeft: 8,
-    },
-    calendar: {
-      backgroundColor: colors.background,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      elevation: 3,
-    },
-    input: {
-      backgroundColor: colors.background,
-      borderRadius: 8,
-      padding: 12,
-      marginVertical: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-      color: colors.text,
-      fontSize: 16,
-    },
-    picker: {
-      backgroundColor: colors.background,
-      borderRadius: 8,
-      padding: 12,
-      marginVertical: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-      height: 46,
-      justifyContent: 'center',
-    },
-    switch: {
-      trackColor: { false: colors.border, true: colors.accent },
-      thumbColor: colors.background,
-    },
-    navBar: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      paddingVertical: 8,
-      backgroundColor: colors.background,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      boxShadow: '0 -2px 4px rgba(0,0,0,0.1)',
-      elevation: 5,
-    },
-    navItem: {
-      alignItems: 'center',
-      flex: 1,
-      paddingVertical: 4,
-    },
-    navItemActive: {
-      backgroundColor: colors.primary,
-      borderRadius: 20,
-      paddingVertical: 4,
-    },
-    navText: {
-      color: colors.text,
-      fontSize: 11,
-      marginTop: 2,
-    },
-    navTextActive: {
-      color: colors.background,
-      fontWeight: '600',
-    },
-    modalContainer: {
-      flex: 1,
-      justifyContent: 'flex-end',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-      backgroundColor: colors.background,
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
-      maxHeight: '50%',
-    },
-    modalItem: {
-      padding: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-
-    // Регистрация
-    // input: {
-    //   borderWidth: 1,
-    //   borderColor: '#007AFF',
-    //   borderRadius: 8,
-    //   padding: 12,
-    //   marginBottom: 5,
-    //   fontSize: 16,
-    //   color: '#000',
-    // },
-    containerCenter: {
-      flex: 1,
-      justifyContent: 'center',
-      paddingHorizontal: 20,
-      backgroundColor: colors.backgroundColor,
-    },
-    titleCenter: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      color: colors.primary,
-      textAlign: 'center',
-      marginBottom: 30,
-    },
-    inputError: {
-      borderColor: colors.error,
-    },
-    errorText: {
-      color: colors.error,
-      fontSize: 12,
-      marginBottom: 10,
-    },
-    button: {
-      backgroundColor: colors.border,
-      paddingVertical: 12,
-      borderRadius: 8,
-      alignItems: 'center',
-      marginBottom: 15,
-    },
-    buttonText: {
-      color: colors.primary,
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
-    link: {
-      color: colors.primary,
-      fontSize: 14,
-      textAlign: 'center',
-      textDecorationLine: 'underline',
-      marginVertical: 5,
-    },
-    switchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 20,
-      gap: 15,
-    },
-    switchLabel: {
-      fontSize: 14,
-      color: '#000',
-      flex: 1,
-    },
-    scrollContainer: {
-      paddingHorizontal: 0,
-      paddingVertical: 30,
-      flexGrow: 1,
-      justifyContent: 'center',
-    },
-  });
-
-// Новые стили
-import { Dimensions } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const dayWidth = (width - 32) / 7;
 
 const globalStyles = StyleSheet.create({
   common: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
     card: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -286,6 +33,8 @@ const globalStyles = StyleSheet.create({
       borderRadius: 8,
       paddingVertical: 8,
       paddingHorizontal: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     buttonCompleted: {
       backgroundColor: '#4CAF50',
@@ -339,6 +88,16 @@ const globalStyles = StyleSheet.create({
       color: '#666',
       textAlign: 'center',
       marginBottom: 8,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: '#bbbbbb',
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      fontSize: 16,
+      color: '#000',
+      backgroundColor: '#fff',
     },
   },
   header: {
@@ -424,9 +183,6 @@ const globalStyles = StyleSheet.create({
       flex: 1,
       paddingHorizontal: 16,
       paddingTop: 16,
-    },
-    list: {
-      paddingBottom: 80, // Увеличен для NavBar и FAB
     },
   },
   calendarScreen: {
@@ -600,6 +356,96 @@ const globalStyles = StyleSheet.create({
       paddingTop: 16,
     },
   },
+  stockScreen: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+    list: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 80, // Для NavBar и FAB
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+      backgroundColor: '#fff',
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      padding: 16,
+      width: '100%',
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#000',
+      marginBottom: 12,
+    },
+  },
+  stockFormScreen: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+      paddingTop: 16,
+      paddingHorizontal: 16,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: '#000',
+      marginBottom: 16,
+    },
+  },
+  autocompleteInput: {
+    container: {
+      position: 'relative',
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: '#bbbbbb',
+      borderRadius: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 12,
+      fontSize: 16,
+      color: '#000',
+      backgroundColor: '#fff',
+    },
+    suggestionContainer: {
+      position: 'absolute',
+      backgroundColor: '#fff',
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      borderWidth: 1,
+      borderColor: '#bbbbbb',
+      maxHeight: 200,
+      zIndex: 1000,
+    },
+    suggestionItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+    },
+    suggestionText: {
+      fontSize: 16,
+      color: '#000',
+    },
+    loadingContainer: {
+      position: 'absolute',
+      backgroundColor: '#fff',
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: '#bbbbbb',
+      padding: 8,
+      alignItems: 'center',
+      zIndex: 1000,
+    },
+  },
   navBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -614,7 +460,8 @@ const globalStyles = StyleSheet.create({
     flex: 1,
   },
   navItemActive: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#007AFF',
+    borderRadius: 32,
   },
   navText: {
     fontSize: 12,
@@ -622,7 +469,7 @@ const globalStyles = StyleSheet.create({
     marginTop: 4,
   },
   navTextActive: {
-    color: '#007AFF',
+    color: '#eee',
     fontWeight: '600',
   },
 });

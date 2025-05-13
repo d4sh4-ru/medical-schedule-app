@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   Switch,
-  StyleSheet,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
@@ -13,12 +12,9 @@ import {
   Keyboard,
 } from 'react-native';
 import { register } from '../../api/auth';
-import { useTheme } from '../../theme/ThemeProvider';
-import { createGlobalStyles } from '../../constants/globalStyles';
+import styles from '../../constants/globalStyles';
 
 export default function RegisterScreen({ navigation }) {
-  const { theme } = useTheme();
-  const styles = createGlobalStyles(theme.colors);
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');

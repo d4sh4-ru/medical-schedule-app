@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../theme/ThemeProvider';
-import { createGlobalStyles } from '../constants/globalStyles';
+import styles from '../constants/globalStyles';
 import HomeIcon from '../../assets/images/home_icon.svg';
 import StockIcon from '../../assets/images/stock_icon.svg';
 import AnalyticsIcon from '../../assets/images/analytics_icon.svg';
@@ -14,7 +14,6 @@ import ScheduleIcon from '../../assets/images/schedule_icon.svg';
 */
 export default function NavBar() {
   const { theme } = useTheme();
-  const styles = createGlobalStyles(theme.colors);
   const navigation = useNavigation();
   const route = useRoute();
 

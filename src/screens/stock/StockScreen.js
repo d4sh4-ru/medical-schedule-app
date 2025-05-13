@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
+  SafeAreaView,
   Text,
   TouchableOpacity,
   ScrollView,
@@ -13,24 +14,18 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { createGlobalStyles } from '../../constants/globalStyles';
+import styles from '../../constants/globalStyles';
 import Svg, { Path } from 'react-native-svg';
 import { FAB } from 'react-native-elements';
 import NavBar from '../../components/NavBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  getStocks,
-  modifyStock,
-  removeStock
-} from '../../services/stockService';
-
+import { getStocks, modifyStock, removeStock } from '../../services/stockService';
+import Header from '../../components/Header';
 
 export default function StockScreen() {
   const { theme } = useTheme();
-  const styles = createGlobalStyles(theme.colors);
   const navigation = useNavigation();
   const [stocks, setStocks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,39 +43,33 @@ export default function StockScreen() {
       setIsLoading(true);
       setIsRetrying(true);
       const data = await getStocks(navigation);
-      setStocks(data);
+      const stocksData = Array.isArray(data) ? data : [];
+      setStocks(stocksData);
+      await AsyncStorage.setItem('stocks', JSON.stringify(stocksData));
       setLastFetchDate(new Date().toDateString());
       setError(null);
+      console.log('Fetched stocks:', stocksData);
     } catch (err) {
-      setError(err.message);
+      console.error('Error fetching stocks:', err);
+      setError('Не удалось загрузить остатки');
+      const cached = await AsyncStorage.getItem('stocks');
+      if (cached) {
+        setStocks(JSON.parse(cached));
+      }
     } finally {
       setIsLoading(false);
       setIsRetrying(false);
     }
   };
-  
 
   // Инициализация при монтировании
   useEffect(() => {
-    (async () => {
-      try {
-        const cached = await AsyncStorage.getItem('stocks');
-        if (cached) {
-          setStocks(JSON.parse(cached));
-          setIsLoading(false);
-        }
-        await fetchStocks();
-      } catch (err) {
-        console.error('Error loading stocks:', err);
-        setError('Ошибка загрузки остатков');
-        setIsLoading(false);
-      }
-    })();
+    fetchStocks();
   }, []);
 
   // Перезапрос остатков при возврате на экран
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       fetchStocks();
     }, [])
   );
@@ -115,18 +104,19 @@ export default function StockScreen() {
       Alert.alert('Ошибка', 'Введите корректное количество');
       return;
     }
-  
+
     try {
       const updatedStocks = await modifyStock(
         selectedStock.id,
         {
           ...selectedStock,
-          RemainingQuantity: parseInt(newQuantity),
+          remainingQuantity: parseInt(newQuantity),
         },
         stocks,
         navigation
       );
       setStocks(updatedStocks);
+      await AsyncStorage.setItem('stocks', JSON.stringify(updatedStocks));
       setError(null);
       Keyboard.dismiss();
       setModalVisible(false);
@@ -134,9 +124,9 @@ export default function StockScreen() {
       setSelectedStock(null);
     } catch (err) {
       console.error('Error updating stock:', err);
-      setError(err.message);
+      setError('Не удалось обновить остаток');
     }
-  };  
+  };
 
   // Закрытие модального окна
   const handleCancel = () => {
@@ -157,66 +147,84 @@ export default function StockScreen() {
           try {
             const updatedStocks = await removeStock(id, stocks, navigation);
             setStocks(updatedStocks);
+            await AsyncStorage.setItem('stocks', JSON.stringify(updatedStocks));
             setError(null);
           } catch (err) {
             console.error('Error deleting stock:', err);
-            setError(err.message);
+            setError('Не удалось удалить остаток');
           }
         },
       },
     ]);
-  };  
+  };
 
   return (
-    <View style={[styles.container, { paddingBottom: 100 }]}>
+    <SafeAreaView style={[styles.stockScreen.container, { backgroundColor: theme.colors.background }]}>
+      <Header
+        title="Запасы"
+      />
       {isLoading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       ) : error && stocks.length === 0 ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={styles.bodyText}>{error}</Text>
-          <TouchableOpacity style={styles.markButton} onPress={fetchStocks} disabled={isRetrying}>
+          <Text style={[styles.common.errorText, { color: theme.colors.error }]}>{error}</Text>
+          <TouchableOpacity
+            style={[styles.common.button, { backgroundColor: theme.colors.primary }]}
+            onPress={fetchStocks}
+            disabled={isRetrying}
+          >
             {isRetrying ? (
-              <ActivityIndicator size="small" color={theme.colors.primary} />
+              <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text style={styles.markButtonText}>Повторить</Text>
+              <Text style={styles.common.buttonText}>Повторить</Text>
             )}
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={styles.stockScreen.list}
+          showsVerticalScrollIndicator={false}
+        >
           {stocks.length > 0 ? (
-            stocks.map((stock) => (
-              <View key={stock.id} style={styles.card}>
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle}>{stock.medicationTradeName}</Text>
-                  <Text style={styles.cardText}>
-                    Количество: {stock.remainingQuantity} табл.
-                  </Text>
+            <>
+              <Text style={[styles.common.debugText, { color: theme.colors.textSecondary || '#666' }]}>
+                Остатков: {stocks.length}
+              </Text>
+              {stocks.map((stock) => (
+                <View key={stock.id} style={styles.common.card}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.common.text, { color: theme.colors.text }]}>
+                      {stock.medicationTradeName}
+                    </Text>
+                    <Text style={[styles.common.captionText, { color: theme.colors.textSecondary || '#666' }]}>
+                      Количество: {stock.remainingQuantity} табл.
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => handleEdit(stock)} style={{ padding: 8 }}>
+                      <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <Path
+                          d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          fill={theme.colors.primary}
+                        />
+                      </Svg>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDelete(stock.id)} style={{ padding: 8 }}>
+                      <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <Path
+                          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          fill={theme.colors.error}
+                        />
+                      </Svg>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-                <View style={styles.cardActions}>
-                  <TouchableOpacity onPress={() => handleEdit(stock)}>
-                    <Svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                      <Path
-                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                        fill={theme.colors.primary}
-                      />
-                    </Svg>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDelete(stock.id)}>
-                    <Svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                      <Path
-                        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                        fill={theme.colors.error}
-                      />
-                    </Svg>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))
+              ))}
+            </>
           ) : (
-            <Text style={[styles.bodyText, { textAlign: 'center', marginTop: 20 }]}>
+            <Text style={[styles.common.emptyText, { color: theme.colors.textSecondary || '#666' }]}>
               Нет остатков препаратов
             </Text>
           )}
@@ -226,7 +234,7 @@ export default function StockScreen() {
       {/* Модальное окно для редактирования количества */}
       <Modal
         animationType="slide"
-        transparent={true}
+        transparent
         visible={modalVisible}
         onRequestClose={handleCancel}
       >
@@ -235,52 +243,46 @@ export default function StockScreen() {
           style={{ flex: 1 }}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <View style={styles.modalContainer}>
-              <SafeAreaView
-                style={[styles.modalContent, { borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingVertical: 8 }]}
-              >
-                <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1 }}>
-                  <Text
-                    style={[styles.title, { paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.border }]}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <SafeAreaView style={styles.stockScreen.modalContainer}>
+              <View style={styles.stockScreen.modalContent}>
+                <Text style={[styles.stockScreen.modalTitle, { color: theme.colors.text }]}>
+                  Редактировать количество
+                </Text>
+
+                <TextInput
+                  ref={textInputRef}
+                  style={[styles.common.input, { color: theme.colors.text }]}
+                  value={newQuantity}
+                  onChangeText={setNewQuantity}
+                  keyboardType="numeric"
+                  placeholder="Количество таблеток"
+                  placeholderTextColor={theme.colors.textSecondary || '#666'}
+                  autoFocus
+                  returnKeyType="done"
+                  onSubmitEditing={handleSaveEdit}
+                />
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
+                  <TouchableOpacity
+                    style={[styles.common.button, { backgroundColor: theme.colors.error, flex: 1, marginRight: 8 }]}
+                    onPress={handleCancel}
                   >
-                    Редактировать количество
-                  </Text>
-                  <View style={[styles.modalItem, { paddingHorizontal: 12, paddingVertical: 8 }]}>
-                    <TextInput
-                      ref={textInputRef}
-                      style={[styles.input, { padding: 8 }]}
-                      value={newQuantity}
-                      onChangeText={setNewQuantity}
-                      keyboardType="numeric"
-                      placeholder="Количество таблеток"
-                      placeholderTextColor={theme.colors.text + '80'}
-                      autoFocus={true}
-                      returnKeyType="none"
-                    />
-                  </View>
-                  <View
-                    style={[styles.modalItem, { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 0, paddingHorizontal: 12, paddingVertical: 4, marginTop: 8 }]}
+                    <Text style={styles.common.buttonText}>Отмена</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.common.button, { backgroundColor: theme.colors.primary, flex: 1 }]}
+                    onPress={handleSaveEdit}
                   >
-                    <TouchableOpacity
-                      style={[styles.markButton, { backgroundColor: theme.colors.error, flex: 1, marginRight: 8, paddingVertical: 6 }]}
-                      onPress={handleCancel}
-                    >
-                      <Text style={[styles.markButtonText, { fontSize: 13 }]}>Отмена</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.markButton, { flex: 1, paddingVertical: 6 }]}
-                      onPress={handleSaveEdit}
-                    >
-                      <Text style={[styles.markButtonText, { fontSize: 13 }]}>Подтвердить</Text>
-                    </TouchableOpacity>
-                  </View>
-                </ScrollView>
-              </SafeAreaView>
-            </View>
+                    <Text style={styles.common.buttonText}>Подтвердить</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </SafeAreaView>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
+
 
       <FAB
         title="+"
@@ -289,9 +291,9 @@ export default function StockScreen() {
         onPress={() => navigation.navigate('StockForm', { fetchStocks })}
         buttonStyle={{ borderRadius: 50, width: 60, height: 60 }}
         titleStyle={{ fontSize: 24 }}
-        containerStyle={{ position: 'absolute', bottom: 55, right: 10 }}
+        containerStyle={{ position: 'absolute', bottom: 80, right: 10 }}
       />
       <NavBar />
-    </View>
+    </SafeAreaView>
   );
 }

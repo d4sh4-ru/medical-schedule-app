@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { createGlobalStyles } from '../../constants/globalStyles';
+import styles from '../../constants/globalStyles';
 import AutocompleteInput from '../../components/AutocompleteInput';
 import { createStock } from '../../services/stockService';
 import { searchMedications } from '../../api/medicationApi';
+import Header from '../../components/Header';
 
-export default function StockFormScreen() {
-  const [stocks, setStocks] = useState([]);
-  const { theme } = useTheme();
-  const styles = createGlobalStyles(theme.colors);
+export default function StockFormScreen({ route }) {
   const navigation = useNavigation();
   const [medicationTradeName, setMedicationTradeName] = useState('');
   const [remainingQuantity, setRemainingQuantity] = useState('');
   const currentDate = new Date().toISOString();
+  const { fetchStocks } = route.params || {};
 
   // Создание остатка
   const handleSubmit = async () => {
@@ -28,18 +26,20 @@ export default function StockFormScreen() {
     }
 
     try {
-      const updatedStocks = await createStock(
+      await createStock(
         {
           medicationTradeName,
           requestDate: currentDate,
           restockDate: currentDate,
-          RemainingQuantity: parseInt(remainingQuantity),
+          remainingQuantity: parseInt(remainingQuantity),
         },
-        stocks,
         navigation
       );
-      setStocks(updatedStocks);
+      if (fetchStocks) {
+        await fetchStocks();
+      }
       navigation.goBack();
+      console.log('Stock created:', { medicationTradeName, remainingQuantity });
     } catch (err) {
       console.error('Error adding stock:', err);
       Alert.alert('Ошибка', 'Не удалось добавить остаток');
@@ -47,28 +47,44 @@ export default function StockFormScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Добавить остаток</Text>
-      <AutocompleteInput
-        value={medicationTradeName}
-        onChangeText={setMedicationTradeName}
-        placeholder="Название препарата"
-        theme={theme}
-        navigation={navigation}
-        style={styles.input}
-        fetchData={searchMedications}
+    <SafeAreaView style={styles.common.container}>
+      <Header
+        title="Добавить запас"
+        leftIconName="close-outline"
+        onLeftPress={() => navigation.goBack()}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Количество таблеток"
-        placeholderTextColor={theme.colors.text + '80'}
-        value={remainingQuantity}
-        onChangeText={setRemainingQuantity}
-        keyboardType="numeric"
-      />
-      <TouchableOpacity style={styles.markButton} onPress={handleSubmit}>
-        <Text style={styles.markButtonText}>Сохранить</Text>
-      </TouchableOpacity>
-    </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.stockFormScreen.container}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View>
+          <AutocompleteInput
+            value={medicationTradeName}
+            onChangeText={setMedicationTradeName}
+            placeholder="Название препарата"
+            navigation={navigation}
+            style={[styles.common.input, { marginBottom: 16 }]}
+            fetchData={searchMedications}
+          />
+          <TextInput
+            style={[styles.common.input, { marginBottom: 16 }]}
+            placeholder="Количество таблеток"
+            placeholderTextColor={'#666'}
+            value={remainingQuantity}
+            onChangeText={setRemainingQuantity}
+            keyboardType="numeric"
+            returnKeyType="done"
+            onSubmitEditing={handleSubmit}
+          />
+          <TouchableOpacity
+            style={[styles.common.button]}
+            onPress={handleSubmit}
+          >
+            <Text style={styles.common.buttonText}>Сохранить</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

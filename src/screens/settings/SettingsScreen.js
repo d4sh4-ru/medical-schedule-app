@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, Text, TouchableOpacity, Switch, FlatList } from 'react-native';
+import { SafeAreaView, View, Text, TouchableOpacity, Switch, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../theme/ThemeProvider';
 import styles from '../../constants/globalStyles';
 import Header from '../../components/Header';
 import { fetchLinkedUsers } from '../../api/userApi';
 import { clearLogout } from '../../services/userService';
 
 export default function SettingsScreen() {
-  const { theme, toggleTheme } = useTheme();
   const navigation = useNavigation();
-  const isDarkTheme = theme === theme.darkTheme;
   const [linkedUsers, setLinkedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,7 +41,7 @@ export default function SettingsScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.settingsScreen.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={styles.settingsScreen.container}>
       <Header
         title="Настройки"
         onLeftPress={() => navigation.navigate('Home')}
@@ -80,7 +77,7 @@ export default function SettingsScreen() {
         >
           <Text style={styles.common.text}>Редактировать персональную информацию</Text>
         </TouchableOpacity>
-        <View
+        {/* <View
           style={[
             styles.common.card,
             { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -88,14 +85,14 @@ export default function SettingsScreen() {
         >
           <Text style={styles.common.text}>Тёмная тема</Text>
           <Switch
-            value={isDarkTheme}
-            onValueChange={toggleTheme}
+            value={0}
+            onValueChange={1}
             trackColor={{ false: theme.colors.switchTrackOff, true: theme.colors.switchTrackOn }}
             thumbColor={isDarkTheme ? theme.colors.switchThumbOn : theme.colors.switchThumbOff}
           />
-        </View>
+        </View> */}
         <TouchableOpacity style={styles.common.card} onPress={handleLogout}>
-          <Text style={[styles.common.text, { color: theme.colors.error }]}>Выйти из профиля</Text>
+          <Text style={[styles.common.text]}>Выйти из профиля</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -119,30 +119,30 @@ const HomeScreen = () => {
   return (
     <SafeAreaView style={styles.homeScreen.container}>
       <StatusBar barStyle="light-content" />
-      <Header
-        title={getTodayFormatted(selectedDate)}
-        leftIconName="settings-outline"
-        onLeftPress={() => navigation.navigate('Settings')}
-        rightIconName="calendar-outline"
-        onRightPress={() => navigation.navigate('Calendar')}
-      />
-      <WeekCalendar
-        weeks={weeks}
-        selectedDate={selectedDate}
-        onSelectDay={handleSelectDay}
-        onWeekChange={handleWeekChange}
-      />
-      <NotificationsList
-        notifications={notifications}
-        isLoadingNotifications={isLoadingNotifications}
-        isRefreshing={isRefreshing}
-        notificationsError={notificationsError}
-        selectedDate={selectedDate}
-        onRefresh={onRefresh}
-        onConfirmNotification={handleConfirmNotification}
-        isRetrying={isRetrying}
-        getTodayFormatted={getTodayFormatted}
-      />
+        <Header
+            title={getTodayFormatted(selectedDate)}
+            leftIconName="settings-outline"
+            onLeftPress={() => navigation.navigate('Settings')}
+            rightIconName="calendar-outline"
+            onRightPress={() => navigation.navigate('Calendar')}
+        />
+        <WeekCalendar
+            weeks={weeks}
+            selectedDate={selectedDate}
+            onSelectDay={handleSelectDay}
+            onWeekChange={handleWeekChange}
+        />
+        <NotificationsList
+            notifications={notifications}
+            isLoadingNotifications={isLoadingNotifications}
+            isRefreshing={isRefreshing}
+            notificationsError={notificationsError}
+            selectedDate={selectedDate}
+            onRefresh={onRefresh}
+            onConfirmNotification={handleConfirmNotification}
+            isRetrying={isRetrying}
+            getTodayFormatted={getTodayFormatted}
+        />
       <NavBar />
     </SafeAreaView>
   );

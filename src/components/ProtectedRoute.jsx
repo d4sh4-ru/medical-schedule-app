@@ -3,7 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getToken } from '../services/userService';
 import { useTheme } from '../theme/ThemeProvider';
-import { createGlobalStyles } from '../constants/globalStyles';
+import styles from '../constants/globalStyles';
 
 
 /**
@@ -16,7 +16,6 @@ import { createGlobalStyles } from '../constants/globalStyles';
 export default function ProtectedRoute({ children }) {
   const navigation = useNavigation();
   const { theme } = useTheme();
-  const styles = createGlobalStyles(theme.colors);
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 

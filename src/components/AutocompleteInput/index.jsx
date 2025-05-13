@@ -1,4 +1,3 @@
-// components/AutocompleteInput/index.jsx
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   TextInput,
@@ -10,17 +9,15 @@ import {
   LayoutAnimation,
 } from 'react-native';
 import { debounce } from '../../utils/debounce';
-import { styles as createStyles } from './styles';
+import styles from '../../constants/globalStyles';
 
 const AutocompleteInput = ({
   value,
   onChangeText,
   placeholder,
-  theme,
   style,
   fetchData,
 }) => {
-  const styles = createStyles(theme);
   const [suggestions, setSuggestions] = useState([]);
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
   const [inputLayout, setInputLayout] = useState({ width: 0, height: 0, x: 0, y: 0 });
@@ -71,7 +68,6 @@ const AutocompleteInput = ({
     }, 300),
     [fetchData]
   );
-  
 
   const handleTextChange = (text) => {
     console.log('[Autocomplete] handleTextChange:', text);
@@ -86,12 +82,19 @@ const AutocompleteInput = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.autocompleteInput.container}>
       <TextInput
         ref={textInputRef}
-        style={[styles.input, style]}
+        style={[
+          styles.autocompleteInput.input,
+          suggestions.length > 0 && {
+            borderBottomLeftRadius: 0,
+            borderBottomRightRadius: 0,
+          },
+          style
+          ]}
         placeholder={placeholder}
-        placeholderTextColor={theme.colors.text + '80'}
+        placeholderTextColor="#666"
         value={value}
         onChangeText={handleTextChange}
         onLayout={handleInputLayout}
@@ -99,22 +102,23 @@ const AutocompleteInput = ({
       {isFetchingSuggestions && (
         <View
           style={[
-            styles.loadingContainer,
+            styles.autocompleteInput.loadingContainer,
             {
               top: inputLayout.height,
               width: inputLayout.width,
             },
           ]}
         >
-          <ActivityIndicator size="small" color={theme.colors.primary} />
+          <ActivityIndicator size="small" color="#007AFF" />
         </View>
       )}
       {suggestions.length > 0 && !isFetchingSuggestions && (
         <ScrollView
           style={[
-            styles.suggestionContainer,
+            styles.autocompleteInput.suggestionContainer,
             {
-              top: inputLayout.height+3,
+              borderBottomWidth: 0,
+              top: inputLayout.height - 1,
               width: inputLayout.width,
             },
           ]}
@@ -123,10 +127,10 @@ const AutocompleteInput = ({
           {suggestions.map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.suggestionItem}
+              style={styles.autocompleteInput.suggestionItem}
               onPress={() => handleSelectSuggestion(item)}
             >
-              <Text style={styles.suggestionText}>{item}</Text>
+              <Text style={styles.autocompleteInput.suggestionText}>{item}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>

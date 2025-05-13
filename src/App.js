@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -44,71 +44,58 @@ const publicRoutes = [
   {
     name: 'Login',
     component: LoginScreen,
-    options: { title: 'Вход', headerLeft: () => null, headerShown: false },
   },
   {
     name: 'Register',
     component: RegisterScreen,
-    options: { title: 'Регистрация', headerLeft: () => null, headerShown: false },
   },
 ];
 
 // Защищённые маршруты
 const protectedRoutes = [
   {
-    name: "Home",
+    name: 'Home',
     component: HomeScreen,
-    options: {headerLeft: () => null, headerShown: false},
   },
   {
     name: 'Calendar',
     component: CalendarScreen,
-    options: { title: 'Календарь', headerLeft: () => null, headerShown: false },
   },
   {
     name: 'Schedule',
     component: ScheduleScreen,
-    options: { title: 'Расписание', headerLeft: () => null, headerShown: false },
   },
   {
     name: 'Settings',
     component: SettingsScreen,
-    options: { title: 'Настройки', headerLeft: () => null, headerShown: false },
   },
   {
     name: 'Stock',
     component: StockScreen,
-    options: { title: 'Запасы', headerLeft: () => null },
   },
   {
     name: 'Analytics',
     component: AnalitycsScreen,
-    options: { title: 'Аналитика', headerLeft: () => null },
   },
   {
     name: 'ScheduleForm',
     component: ScheduleFormScreen,
-    options: { title: 'Приём' },
   },
   {
     name: 'ScheduleList',
     component: ScheduleListScreen,
-    options: { title: 'Расписание врача', headerLeft: () => null, headerShown: false },
   },
   {
     name: 'StockForm',
     component: StockFormScreen,
-    options: { title: 'Добавить запас' },
   },
   {
     name: 'UpdatePassword',
     component: UpdatePasswordScreen,
-    options: { title: 'Обновление пароля' },
   },
   {
     name: 'EditMe',
     component: EditMeScreen,
-    options: { title: 'Редактирование профиля' },
   },
 ];
 
@@ -118,41 +105,37 @@ export default function App() {
   return (
     <ThemeProvider>
       <NavigationContainer ref={navigationRef}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <Stack.Navigator
-          initialRouteName='Home'
-          screenOptions={{
-            cardStyleInterpolator: forFade,
-            transitionSpec: transitionSpec,
-            gestureEnabled: false,
-            cardStyle: { backgroundColor: 'transparent' },
-            headerStyle: { backgroundColor: '#007AFF' },
-            headerTintColor: '#FFFFFF',
-            headerTitleStyle: { fontWeight: 'bold' },
-          }}
-        >
-          {publicRoutes.map((route) => (
-            <Stack.Screen
-              key={route.name}
-              name={route.name}
-              component={route.component}
-              options={route.options}
-            />
-          ))}
-          {protectedRoutes.map((route) => (
-            <Stack.Screen
-              key={route.name}
-              name={route.name}
-              options={route.options}
-            >
-              {(props) => (
-                <ProtectedRoute>
-                  <route.component {...props} />
-                </ProtectedRoute>
-              )}
-            </Stack.Screen>
-          ))}
-        </Stack.Navigator>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <Stack.Navigator
+            initialRouteName='Home'
+            screenOptions={{
+              cardStyleInterpolator: forFade,
+              transitionSpec: transitionSpec,
+              gestureEnabled: false,
+              cardStyle: { backgroundColor: 'transparent' },
+              headerShown: false, // Отключаем заголовки для всех экранов
+            }}
+          >
+            {publicRoutes.map((route) => (
+              <Stack.Screen
+                key={route.name}
+                name={route.name}
+                component={route.component}
+              />
+            ))}
+            {protectedRoutes.map((route) => (
+              <Stack.Screen
+                key={route.name}
+                name={route.name}
+              >
+                {(props) => (
+                  <ProtectedRoute>
+                    <route.component {...props} />
+                  </ProtectedRoute>
+                )}
+              </Stack.Screen>
+            ))}
+          </Stack.Navigator>
         </GestureHandlerRootView>
       </NavigationContainer>
     </ThemeProvider>
