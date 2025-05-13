@@ -505,6 +505,17 @@ const globalStyles = StyleSheet.create({
       backgroundColor: '#fff',
     },
   },
+  // Стили для SettingsScreen
+  settingsScreen: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+    settingsContainer: {
+      flex: 1,
+      padding: 16,
+    },
+  },
 });
 
 export default globalStyles;

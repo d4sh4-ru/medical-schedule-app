@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
-import { ThemeProvider, useTheme } from './theme/ThemeProvider';
+import { ThemeProvider } from './theme/ThemeProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import RegisterScreen from './screens/auth/RegisterScreen';
@@ -67,12 +67,12 @@ const protectedRoutes = [
   {
     name: 'Schedule',
     component: ScheduleScreen,
-    options: { title: 'Расписание', headerLeft: () => null },
+    options: { title: 'Расписание', headerLeft: () => null, headerShown: false },
   },
   {
     name: 'Settings',
     component: SettingsScreen,
-    options: { title: 'Настройки', headerLeft: () => null },
+    options: { title: 'Настройки', headerLeft: () => null, headerShown: false },
   },
   {
     name: 'Stock',
@@ -120,7 +120,7 @@ export default function App() {
             transitionSpec: transitionSpec,
             gestureEnabled: false,
             cardStyle: { backgroundColor: 'transparent' },
-            headerStyle: { backgroundColor: '#00BCD4' },
+            headerStyle: { backgroundColor: '#007AFF' },
             headerTintColor: '#FFFFFF',
             headerTitleStyle: { fontWeight: 'bold' },
           }}

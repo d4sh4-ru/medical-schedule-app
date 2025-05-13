@@ -9,6 +9,7 @@ import { FAB } from 'react-native-elements';
 import NavBar from '../../components/NavBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
+import Header from '../../components/Header';
 
 export default function ScheduleScreen() {
   const { theme } = useTheme();
@@ -25,6 +26,7 @@ export default function ScheduleScreen() {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [scheduleDetails, setScheduleDetails] = useState(null);
 
+  //TODO: использовать глобальные стили
   // Локальные стили
   const localStyles = StyleSheet.create({
     modalContainer: {
@@ -117,6 +119,8 @@ export default function ScheduleScreen() {
     });
   };
 
+
+  // TODO: убрать при переходе на использование NotificationList
   // Иконка статуса
   const renderStatusIcon = (status) => {
     switch (status) {
@@ -152,6 +156,7 @@ export default function ScheduleScreen() {
     }
   };
 
+  // TODO: убрать при переходе на использование NotificationList
   // Рендеринг времени приёма
   const renderTimeItem = ({ item }) => (
     <View style={localStyles.timeItem}>
@@ -163,6 +168,7 @@ export default function ScheduleScreen() {
     </View>
   );
 
+  // TODO: использовать методы сервиса
   // Загрузка дней с приёмами
   const fetchMarkedDays = async (month, year) => {
     try {
@@ -183,6 +189,7 @@ export default function ScheduleScreen() {
     }
   };
 
+  // TODO: использовать методы сервиса
   // Загрузка уведомлений на день
   const fetchNotifications = async (day, month, year) => {
     try {
@@ -208,6 +215,7 @@ export default function ScheduleScreen() {
     }
   };
 
+  // TODO: использовать методы сервиса
   // Загрузка деталей приёма
   const fetchScheduleDetails = async (scheduleId) => {
     try {
@@ -237,12 +245,14 @@ export default function ScheduleScreen() {
     }
   };
 
+  // TODO: использовать методы сервиса
   // Загрузка уведомлений и очистка кэша
   const loadNotifications = async (day, month, year) => {
     await AsyncStorage.removeItem(`notifications-${day}-${month}-${year}`);
     await fetchNotifications(day, month, year);
   };
 
+  // TODO: использовать методы сервиса
   // Очистка кэша при монтировании
   useEffect(() => {
     const clearCache = async () => {
@@ -266,6 +276,7 @@ export default function ScheduleScreen() {
     }, [selectedDate])
   );
 
+  // TODO: использовать методы сервиса
   // Очистка кэша при смене суток
   useEffect(() => {
     const interval = setInterval(() => {
@@ -313,6 +324,7 @@ export default function ScheduleScreen() {
     setModalVisible(true);
   };
 
+  // TODO: использовать методы сервиса
   // Удаление уведомления
   const handleDelete = async (id) => {
     Alert.alert(
@@ -346,6 +358,9 @@ export default function ScheduleScreen() {
 
   return (
     <View style={[styles.container, { paddingBottom: 100 }]}>
+      <Header
+        title="Расписания приёмов"
+      />
       <Calendar
         style={styles.calendar}
         current={selectedDate}
@@ -391,6 +406,7 @@ export default function ScheduleScreen() {
           </Text>
         )}
       </ScrollView>
+      {/* TODO: вынести в отдельный компонент */}
       <Modal
         animationType="fade"
         transparent={true}

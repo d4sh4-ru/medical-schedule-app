@@ -120,9 +120,11 @@ const HomeScreen = () => {
     <SafeAreaView style={styles.homeScreen.container}>
       <StatusBar barStyle="light-content" />
       <Header
-        date={getTodayFormatted(selectedDate)}
-        onSettingsPress={() => console.log('Settings pressed')}
-        onCalendarPress={() => navigation.navigate('Calendar')}
+        title={getTodayFormatted(selectedDate)}
+        leftIconName="settings-outline"
+        onLeftPress={() => navigation.navigate('Settings')}
+        rightIconName="calendar-outline"
+        onRightPress={() => navigation.navigate('Calendar')}
       />
       <WeekCalendar
         weeks={weeks}

@@ -4,11 +4,14 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../theme/ThemeProvider';
 import { createGlobalStyles } from '../constants/globalStyles';
 import HomeIcon from '../../assets/images/home_icon.svg';
-import SettingsIcon from '../../assets/images/settings_icon.svg';
 import StockIcon from '../../assets/images/stock_icon.svg';
 import AnalyticsIcon from '../../assets/images/analytics_icon.svg';
 import ScheduleIcon from '../../assets/images/schedule_icon.svg';
 
+/**
+* Компонент навигационной панели.
+* @returns {JSX.Element} JSX-элемент навигационной панели.
+*/
 export default function NavBar() {
   const { theme } = useTheme();
   const styles = createGlobalStyles(theme.colors);
@@ -20,7 +23,6 @@ export default function NavBar() {
     { name: 'Analytics', label: 'Аналитика', icon: AnalyticsIcon },
     { name: 'Home', label: 'Главная', icon: HomeIcon },
     { name: 'Schedule', label: 'Расписание', icon: ScheduleIcon },
-    { name: 'Settings', label: 'Настройки', icon: SettingsIcon },
   ];
 
   return (

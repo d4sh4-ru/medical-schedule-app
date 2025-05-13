@@ -73,7 +73,6 @@ export const getTodayFormatted = (date = new Date()) => {
  * @param {number} year - Год, для которого генерируются месяцы.
  * @returns {Array} Массив объектов, представляющих месяцы.
  */
-// Генерация месяцев для календаря
 export function generateMonths(year) {
     const months = [];
     for (let month = 0; month < 12; month++) {

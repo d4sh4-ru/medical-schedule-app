@@ -65,10 +65,10 @@ const CalendarScreen = ({ navigation }) => {
     <SafeAreaView style={styles.calendarScreen.container}>
       <StatusBar barStyle="light-content" />
       <Header
-        date=""
-        onHomePress={() => navigation.navigate('Home')}
-        showHomeIcon={true}
-      />
+        title="Календарь" // Заголовок
+        onLeftPress={() => navigation.navigate('Home')}
+        leftIconName="close"      
+        />
       <FlatList
         data={months}
         renderItem={renderMonth}

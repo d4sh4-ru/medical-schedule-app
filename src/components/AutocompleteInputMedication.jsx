@@ -15,6 +15,17 @@ import { fetchWithAuth } from '../api/fetchWithAuth';
 // 1. Все возможные количества таблеток в пачке для препарата
 // 2. Все возможные дозировки одной таблетки для препарата 
 
+/**
+* Компонент ввода с автодополнением.
+* @param {Object} props - Свойства компонента.
+* @param {string} props.value - Текущее значение ввода.
+* @param {function} props.onChangeText - Функция обработки изменения текста.
+* @param {string} props.placeholder - Текст-заполнитель.
+* @param {Object} props.theme - Тема приложения.
+* @param {Object} props.navigation - Навигация.
+* @param {Object} props.style - Дополнительные стили.
+* @returns {JSX.Element} JSX-элемент компонента ввода с автодополнением.
+*/
 const AutocompleteInput = ({
   value,
   onChangeText,

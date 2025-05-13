@@ -6,6 +6,9 @@ import styles from '../../constants/globalStyles';
 
 const { width } = Dimensions.get('window');
 
+// Маппинг для сокращённых дней недели
+const shortWeekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
 const WeekCalendar = ({ weeks, selectedDate, onSelectDay, onWeekChange }) => {
   const flatListRef = useRef(null);
 
@@ -35,37 +38,43 @@ const WeekCalendar = ({ weeks, selectedDate, onSelectDay, onWeekChange }) => {
 
   const renderWeek = ({ item: week }) => (
     <View style={styles.weekCalendar.weekDaysContainer}>
-      {week.map((day, index) => (
-        <TouchableOpacity
-          key={index}
-          style={styles.weekCalendar.dayContainer}
-          onPress={() => onSelectDay(day.date)}
-        >
-          <Text
-            style={[
-              styles.weekCalendar.dayLabel,
-              isSameDate(day.date, selectedDate) && styles.weekCalendar.selectedDayLabel,
-            ]}
-          >
-            {day.label}
-          </Text>
-          <View
-            style={[
-              styles.weekCalendar.dayNumberContainer,
-              isSameDate(day.date, selectedDate) && styles.weekCalendar.selectedDayContainer,
-            ]}
+      {week.map((day, index) => {
+        // Получаем сокращённое название дня недели из даты
+        const dayIndex = day.date.getDay(); // 0 (воскресенье) - 6 (суббота)
+        const shortLabel = shortWeekdays[dayIndex === 0 ? 6 : dayIndex - 1]; // Сдвиг для ПН=0, ВС=6
+
+        return (
+          <TouchableOpacity
+            key={index}
+            style={styles.weekCalendar.dayContainer}
+            onPress={() => onSelectDay(day.date)}
           >
             <Text
               style={[
-                styles.weekCalendar.dayNumber,
-                isSameDate(day.date, selectedDate) && styles.weekCalendar.selectedDay,
+                styles.weekCalendar.dayLabel,
+                isSameDate(day.date, selectedDate) && styles.weekCalendar.selectedDayLabel,
               ]}
             >
-              {day.date.getDate()}
+              {shortLabel}
             </Text>
-          </View>
-        </TouchableOpacity>
-      ))}
+            <View
+              style={[
+                styles.weekCalendar.dayNumberContainer,
+                isSameDate(day.date, selectedDate) && styles.weekCalendar.selectedDayContainer,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.weekCalendar.dayNumber,
+                  isSameDate(day.date, selectedDate) && styles.weekCalendar.selectedDay,
+                ]}
+              >
+                {day.date.getDate()}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 

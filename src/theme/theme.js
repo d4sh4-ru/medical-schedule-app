@@ -3,8 +3,8 @@
  */
 export const lightTheme = {
   colors: {
-    primary: '#00BCD4', // Циановый
-    accent: '#26A69A', // Аквамариновый
+    primary: '#007AFF', // Циановый
+    accent: '#CFD8DC', // Аквамариновый
     secondary: '#F0F4F8', // Светлый фон
     text: '#1A1A1A', // Тёмный текст
     error: '#FF5252', // Красный для ошибок
