@@ -271,14 +271,12 @@ const globalStyles = StyleSheet.create({
       backgroundColor: '#fff',
     },
     calendar: {
-      marginHorizontal: 16,
-      marginBottom: 16,
+      marginHorizontal: 0,
       borderRadius: 8,
       overflow: 'hidden',
     },
     notificationsContainer: {
       flex: 1,
-      paddingHorizontal: 16,
     },
     modalContainer: {
       flex: 1,
@@ -400,6 +398,138 @@ const globalStyles = StyleSheet.create({
       marginBottom: 16,
     },
   },
+  scheduleFormScreen: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+    contentContainer: {
+      flex: 1,
+      backgroundColor: '#fff',
+      paddingHorizontal: 16,
+      paddingBottom: 80,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: '#000',
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: '#000',
+      marginBottom: 8,
+      marginTop: 16,
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      padding: 16,
+    },
+    modalContent: {
+      backgroundColor: '#fff',
+      borderRadius: 12,
+      padding: 16,
+      width: '100%',
+      maxHeight: '80%',
+    },
+    modalItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+    },
+  },
+  timeItem: {
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+      backgroundColor: '#fff',
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: '#eee',
+      alignSelf: 'flex-start',
+    },
+    timeButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+    },
+    timeText: {
+      fontSize: 16,
+      color: '#000',
+    },
+    deleteButton: {
+      padding: 8,
+    },
+  },
+  timeGrid: {
+    container: {
+      marginVertical: 4,
+    },
+    row: {
+      flexDirection: 'row',
+      marginBottom: 4,
+    },
+    column: {
+      flex: 1,
+      marginRight: 8,
+    },
+    emptyColumn: {
+      flex: 1,
+      marginRight: 8,
+    },
+    addButton: {
+      backgroundColor: '#007AFF',
+      borderRadius: 20,
+      width: 40,
+      height: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 8,
+      alignSelf: 'flex-start',
+    },
+  },
+  dateRangePicker: {
+    triggerButton: {
+      borderWidth: 1,
+      borderColor: '#bbbbbb',
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      backgroundColor: '#fff',
+    },
+    triggerText: {
+      fontSize: 16,
+      color: '#000',
+    },
+  },
+  confirmButton: {
+    container: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: '#fff',
+      padding: 16,
+      borderTopWidth: 1,
+      borderTopColor: '#eee',
+    },
+    button: {
+      backgroundColor: '#007AFF',
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: '#fff',
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  },
   autocompleteInput: {
     container: {
       position: 'relative',
@@ -471,6 +601,86 @@ const globalStyles = StyleSheet.create({
   navTextActive: {
     color: '#eee',
     fontWeight: '600',
+  },
+  customPicker: {
+    container: {
+      position: 'relative',
+    },
+    triggerButton: {
+      borderWidth: 1,
+      borderColor: '#bbbbbb',
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      backgroundColor: '#fff',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    triggerText: {
+      fontSize: 16,
+      color: '#000',
+    },
+    dropdown: {
+      position: 'absolute',
+      top: '100%',
+      left: 0,
+      right: 0,
+      backgroundColor: '#fff',
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: '#bbbbbb',
+      maxHeight: 200,
+      zIndex: 1000,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    dropdownItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+    },
+    dropdownItemText: {
+      fontSize: 16,
+      color: '#000',
+    },
+    customInputContainer: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+    },
+    customInput: {
+      borderWidth: 1,
+      borderColor: '#bbbbbb',
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      fontSize: 16,
+      color: '#000',
+      backgroundColor: '#f9f9f9',
+    },
+    customInputButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 8,
+    },
+    customInputButton: {
+      backgroundColor: '#007AFF',
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      flex: 1,
+      alignItems: 'center',
+      marginHorizontal: 4,
+    },
+    customInputButtonText: {
+      color: '#fff',
+      fontSize: 14,
+      fontWeight: '600',
+    },
   },
 });
 

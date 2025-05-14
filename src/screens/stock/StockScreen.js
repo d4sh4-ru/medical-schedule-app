@@ -246,13 +246,13 @@ export default function StockScreen() {
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <SafeAreaView style={styles.stockScreen.modalContainer}>
               <View style={styles.stockScreen.modalContent}>
-                <Text style={[styles.stockScreen.modalTitle, { color: theme.colors.text }]}>
+                <Text style={styles.stockScreen.modalTitle}>
                   Редактировать количество
                 </Text>
 
                 <TextInput
                   ref={textInputRef}
-                  style={[styles.common.input, { color: theme.colors.text }]}
+                  style={[styles.common.input]}
                   value={newQuantity}
                   onChangeText={setNewQuantity}
                   keyboardType="numeric"
@@ -291,7 +291,7 @@ export default function StockScreen() {
         onPress={() => navigation.navigate('StockForm', { fetchStocks })}
         buttonStyle={{ borderRadius: 50, width: 60, height: 60 }}
         titleStyle={{ fontSize: 24 }}
-        containerStyle={{ position: 'absolute', bottom: 80, right: 10 }}
+        containerStyle={{ position: 'absolute', bottom: 65, right: 10 }}
       />
       <NavBar />
     </SafeAreaView>
