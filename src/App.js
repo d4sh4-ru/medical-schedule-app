@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import 'react-native-gesture-handler';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { syncDeviceInfo } from './services/userService';
 import RegisterScreen from './screens/auth/RegisterScreen';
 import LoginScreen from './screens/auth/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -31,11 +33,11 @@ const forFade = ({ current }) => ({
 const transitionSpec = {
   open: {
     animation: 'timing',
-    config: { duration: 200 },
+    config: { duration: 400 },
   },
   close: {
     animation: 'timing',
-    config: { duration: 200 },
+    config: { duration: 400 },
   },
 };
 
@@ -101,6 +103,19 @@ const protectedRoutes = [
 
 export default function App() {
   const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    const unsubscribe = navigationRef.addListener('state', async () => {
+      const currentRoute = navigationRef.getCurrentRoute();
+      const screen = currentRoute?.name;
+
+      if (screen !== 'Login' && screen !== 'Register') {
+        await syncDeviceInfo();
+      }
+    });
+
+    return unsubscribe;
+  }, []);
 
   return (
     <ThemeProvider>

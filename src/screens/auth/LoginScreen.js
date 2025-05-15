@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+} from 'react-native';
 import { loginUser } from '../../services/userService';
 import styles from '../../constants/globalStyles';
 
@@ -9,9 +17,8 @@ export default function LoginScreen({ navigation }) {
     USER_NOT_FOUND: 'Пользователь не найден',
     SERVER_ERROR: 'Ошибка сервера, попробуйте позже',
     NETWORK_ERROR: 'Проблемы с интернет-соединением',
-  };  
+  };
 
-  // Отключаем шапку
   useEffect(() => {
     navigation.setOptions({
       headerShown: false,
@@ -29,7 +36,6 @@ export default function LoginScreen({ navigation }) {
     password: false,
   });
 
-  // Регулярное выражение для валидации email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const validateField = (field, value) => {
@@ -53,12 +59,10 @@ export default function LoginScreen({ navigation }) {
       password: validateField('password', password),
     };
     setErrors(newErrors);
-
     return !Object.values(newErrors).some(error => error);
   };
 
   const handleLogin = async () => {
-    // Помечаем все поля как посещённые
     setTouched({
       email: true,
       password: true,
@@ -73,71 +77,77 @@ export default function LoginScreen({ navigation }) {
       navigation.replace('Home');
     } catch (error) {
       console.error('Login error:', error);
-    
       const code = error?.response?.data?.code || error?.code;
       const defaultMessage = 'Произошла ошибка. Попробуйте ещё раз.';
       const message = ERROR_MESSAGES[code] || defaultMessage;
-    
-      const newErrors = {
+      setErrors({
         email: '',
         password: message,
-      };
-      setErrors(newErrors);
-    }    
+      });
+    }
   };
 
   return (
-    <View style={styles.containerCenter}>
-      <Text style={styles.titleCenter}>Вход</Text>
-      <View>
-        <TextInput
-          style={[styles.input, errors.email && touched.email && styles.inputError]}
-          placeholder="Email"
-          value={email}
-          onChangeText={text => {
-            setEmail(text);
-            if (touched.email || errors.email) {
-              setErrors(prev => ({ ...prev, email: validateField('email', text) }));
-            }
-          }}
-          onBlur={() => {
-            setTouched(prev => ({ ...prev, email: true }));
-            setErrors(prev => ({ ...prev, email: validateField('email', email) }));
-          }}
-          keyboardType="email-address"
-          placeholderTextColor="#999"
-        />
-        {errors.email && touched.email && <Text style={styles.errorText}>{errors.email}</Text>}
-      </View>
-      <View>
-        <TextInput
-          style={[styles.input, errors.password && touched.password && styles.inputError]}
-          placeholder="Пароль"
-          value={password}
-          onChangeText={text => {
-            setPassword(text);
-            if (touched.password || errors.password) {
-              setErrors(prev => ({ ...prev, password: validateField('password', text) }));
-            }
-          }}
-          onBlur={() => {
-            setTouched(prev => ({ ...prev, password: true }));
-            setErrors(prev => ({ ...prev, password: validateField('password', password) }));
-          }}
-          secureTextEntry
-          placeholderTextColor="#999"
-        />
-        {errors.password && touched.password && <Text style={styles.errorText}>{errors.password}</Text>}
-      </View>
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Подтвердить</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => alert('Восстановление пароля пока не реализовано')}>
-        <Text style={styles.link}>Забыл пароль? Восстановить</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>Нет учетной записи? Зарегистрироваться</Text>
-      </TouchableOpacity>
-    </View>
+    <KeyboardAvoidingView
+      style={styles.loginScreen.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView
+        contentContainerStyle={styles.loginScreen.contentContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.loginScreen.title}>Вход</Text>
+        <View style={styles.loginScreen.inputContainer}>
+          <TextInput
+            style={[styles.common.input, errors.email && touched.email && styles.common.inputError]}
+            placeholder="Email"
+            value={email}
+            onChangeText={text => {
+              setEmail(text);
+              if (touched.email || errors.email) {
+                setErrors(prev => ({ ...prev, email: validateField('email', text) }));
+              }
+            }}
+            onBlur={() => {
+              setTouched(prev => ({ ...prev, email: true }));
+              setErrors(prev => ({ ...prev, email: validateField('email', email) }));
+            }}
+            keyboardType="email-address"
+            placeholderTextColor="#999"
+          />
+          {errors.email && touched.email && <Text style={styles.common.errorText}>{errors.email}</Text>}
+        </View>
+        <View style={styles.loginScreen.inputContainer}>
+          <TextInput
+            style={[styles.common.input, errors.password && touched.password && styles.common.inputError]}
+            placeholder="Пароль"
+            value={password}
+            onChangeText={text => {
+              setPassword(text);
+              if (touched.password || errors.password) {
+                setErrors(prev => ({ ...prev, password: validateField('password', text) }));
+              }
+            }}
+            onBlur={() => {
+              setTouched(prev => ({ ...prev, password: true }));
+              setErrors(prev => ({ ...prev, password: validateField('password', password) }));
+            }}
+            secureTextEntry
+            placeholderTextColor="#999"
+          />
+          {errors.password && touched.password && <Text style={styles.common.errorText}>{errors.password}</Text>}
+        </View>
+        <TouchableOpacity style={styles.common.button} onPress={handleLogin}>
+          <Text style={styles.common.buttonText}>Подтвердить</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => alert('Восстановление пароля пока не реализовано')}>
+          <Text style={styles.loginScreen.link}>Забыл пароль? Восстановить</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.loginScreen.link}>Нет учетной записи? Зарегистрироваться</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

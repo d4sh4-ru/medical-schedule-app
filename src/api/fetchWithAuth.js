@@ -1,4 +1,5 @@
 import { getToken, removeToken } from '../services/userService';
+import log from '../utils/coloredLog';
 
 /**
  * Выполняет HTTP-запрос с авторизацией с использованием токена.
@@ -12,11 +13,11 @@ import { getToken, removeToken } from '../services/userService';
  * @throws {Error} Если токен недействителен или истёк, выбрасывается ошибка с сообщением "Unauthorized".
  */
 export const fetchWithAuth = async (url, options = {}, navigation = null) => {
-  console.log('fetchWithAuth called:', { url, options, navigation: !!navigation });
+  log.cyan('[fetchWithAuth] called:', { url, options, navigation: !!navigation });
 
   try {
     const token = await getToken();
-    console.log('Token retrieved:', token ? 'Token exists' : 'No token');
+    log.cyan('[fetchWithAuth] Token retrieved:', token ? 'Token exists' : 'No token');
 
     const headers = {
       'Content-Type': 'application/json',
@@ -27,21 +28,21 @@ export const fetchWithAuth = async (url, options = {}, navigation = null) => {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    console.log('Sending request:', { url, method: options.method || 'GET', headers });
+    log.cyan('[fetchWithAuth] Sending request:', { url, method: options.method || 'GET', headers });
 
     const response = await fetch(url, {
       ...options,
       headers,
     });
 
-    console.log('Response received:', {
+    log.cyan('[fetchWithAuth] Response received:', {
       status: response.status,
       ok: response.ok,
       url: response.url,
     });
 
     if (response.status === 401 && navigation) {
-      console.log('Unauthorized (401), removing token and navigating to Login');
+      log.cyan('[fetchWithAuth] Unauthorized (401), removing token and navigating to Login');
       await removeToken();
       navigation.replace('Login');
       throw new Error('Unauthorized: Токен недействителен или истёк');

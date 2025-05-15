@@ -27,6 +27,7 @@ const DateRangePicker = ({ dateRange, markedDates, onSelect, formatDateRange }) 
               markingType={'period'}
               markedDates={markedDates}
               onDayPress={onSelect}
+              firstDay={1}
               theme={{
                 calendarBackground: '#fff',
                 textSectionTitleColor: '#000',

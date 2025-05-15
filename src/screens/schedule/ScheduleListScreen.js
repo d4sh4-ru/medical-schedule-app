@@ -140,7 +140,7 @@ export default function ScheduleListScreen() {
         titleStyle={{ fontSize: 24 }}
         containerStyle={{
           position: 'absolute',
-          bottom: 65,
+          bottom: 80,
           right: 10,
         }}
       />

@@ -257,6 +257,7 @@ export default function ScheduleScreen() {
         onMonthChange={handleMonthChange}
         markedDates={markedDates}
         locale="ru"
+        firstDay={1}
         theme={{
           calendarBackground: theme.colors.background,
           textSectionTitleColor: theme.colors.text,

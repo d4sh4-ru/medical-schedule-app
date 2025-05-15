@@ -118,7 +118,7 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.homeScreen.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
         <Header
             title={getTodayFormatted(selectedDate)}
             leftIconName="settings-outline"

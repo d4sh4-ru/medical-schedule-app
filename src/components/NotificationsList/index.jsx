@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
-import { getTimeRemaining } from '../../utils/timeUtils';
+import { getTimeRemaining, getFormattedDate } from '../../utils/timeUtils';
 import styles from '../../constants/globalStyles';
 
 const NotificationsList = ({
@@ -45,8 +45,9 @@ const NotificationsList = ({
         <View>
           <Text style={styles.common.text}>{item.medicationTradeName || 'Без названия'}</Text>
           <Text style={isOverdue ? styles.common.overdueText : styles.common.captionText}>
-            {isPending ? 'Ожидает подтверждения' : timeText}
+            {timeText}
           </Text>
+          <Text>{getFormattedDate(item.sentAt)}</Text>
         </View>
         <TouchableOpacity
           style={[

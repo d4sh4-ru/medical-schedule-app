@@ -31,8 +31,8 @@ const globalStyles = StyleSheet.create({
     button: {
       backgroundColor: '#007AFF',
       borderRadius: 8,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -48,7 +48,7 @@ const globalStyles = StyleSheet.create({
     },
     buttonText: {
       color: '#fff',
-      fontSize: 14,
+      fontSize: 16,
       fontWeight: '600',
     },
     text: {
@@ -66,10 +66,10 @@ const globalStyles = StyleSheet.create({
       fontWeight: '500',
     },
     errorText: {
-      fontSize: 16,
+      fontSize: 14,
       color: '#d32f2f',
-      textAlign: 'center',
-      marginTop: 16,
+      marginTop: 4,
+      marginBottom: 8,
     },
     loadingText: {
       fontSize: 16,
@@ -93,11 +93,15 @@ const globalStyles = StyleSheet.create({
       borderWidth: 1,
       borderColor: '#bbbbbb',
       borderRadius: 8,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
       fontSize: 16,
       color: '#000',
       backgroundColor: '#fff',
+      marginBottom: 8,
+    },
+    inputError: {
+      borderColor: '#d32f2f',
     },
   },
   header: {
@@ -680,6 +684,77 @@ const globalStyles = StyleSheet.create({
       color: '#fff',
       fontSize: 14,
       fontWeight: '600',
+    },
+  },
+  loginScreen: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+      paddingHorizontal: 16,
+    },
+    contentContainer: {
+      flexGrow: 1,
+      paddingTop: 40,
+      paddingBottom: 40,
+      justifyContent: 'center',
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: '#000',
+      textAlign: 'center',
+      marginBottom: 32,
+    },
+    inputContainer: {
+      marginBottom: 16,
+    },
+    link: {
+      fontSize: 14,
+      color: '#007AFF',
+      textAlign: 'center',
+      marginTop: 16,
+      textDecorationLine: 'underline',
+    },
+  },
+  registerScreen: {
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+      paddingHorizontal: 16,
+    },
+    contentContainer: {
+      flexGrow: 1,
+      paddingTop: 40,
+      paddingBottom: 40,
+      justifyContent: 'center',
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: '#000',
+      textAlign: 'center',
+      marginBottom: 32,
+    },
+    inputContainer: {
+      marginBottom: 16,
+    },
+    switchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 16,
+    },
+    switchLabel: {
+      fontSize: 14,
+      color: '#000',
+      marginLeft: 8,
+      flex: 1,
+    },
+    link: {
+      fontSize: 14,
+      color: '#007AFF',
+      textAlign: 'center',
+      marginTop: 16,
+      textDecorationLine: 'underline',
     },
   },
 });

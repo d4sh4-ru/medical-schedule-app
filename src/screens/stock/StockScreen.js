@@ -291,7 +291,7 @@ export default function StockScreen() {
         onPress={() => navigation.navigate('StockForm', { fetchStocks })}
         buttonStyle={{ borderRadius: 50, width: 60, height: 60 }}
         titleStyle={{ fontSize: 24 }}
-        containerStyle={{ position: 'absolute', bottom: 65, right: 10 }}
+        containerStyle={{ position: 'absolute', bottom: 80, right: 10 }}
       />
       <NavBar />
     </SafeAreaView>

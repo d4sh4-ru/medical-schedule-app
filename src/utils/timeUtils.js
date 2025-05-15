@@ -19,4 +19,19 @@ export function getTimeRemaining(targetTimeISO) {
   
     return { text, overdue };
   }
-  
+// TODO: Объединить с dateUtils  
+export function getFormattedDate(targetTimeISO) {
+    const targetTime = new Date(targetTimeISO);
+    
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    return targetTime.toLocaleDateString('ru-RU', options); // Например: "15 апреля 2025"
+}
+
+export function getFormattedTime(targetTimeISO) {
+    const targetTime = new Date(targetTimeISO);
+
+    const hours = targetTime.getHours().toString().padStart(2, '0');
+    const minutes = targetTime.getMinutes().toString().padStart(2, '0');
+
+    return `${hours}:${minutes}`; // Например: "14:30"
+}

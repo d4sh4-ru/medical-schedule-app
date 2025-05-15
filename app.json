@@ -17,11 +17,21 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon.png"
       },
-      "package": "com.d4sh4ru.medicalscheduleapp"
+      "package": "com.d4sh4ru.medicalscheduleapp",
+      "googleServicesFile": "./google-services.json"
     },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon512.png",
+          "color": "#ffffff",
+          "googleServicesFile": "./google-services.json"
+        }
+      ]
+    ],
     "packagerOpts": {
       "config": "metro.config.js",
       "sourceExts": [

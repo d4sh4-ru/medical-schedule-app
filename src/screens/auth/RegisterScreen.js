@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,24 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import { register } from '../../api/auth';
+import { registerUser } from '../../services/userService';
 import styles from '../../constants/globalStyles';
 
 export default function RegisterScreen({ navigation }) {
+  const ERROR_MESSAGES = {
+    INVALID_CREDENTIALS: 'Неверные данные',
+    USER_EXISTS: 'Пользователь с таким email уже существует',
+    SERVER_ERROR: 'Ошибка сервера, попробуйте позже',
+    NETWORK_ERROR: 'Проблемы с интернет-соединением',
+    REGISTER_ERROR: 'Ошибка регистрации',
+  };
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
+
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -40,11 +54,9 @@ export default function RegisterScreen({ navigation }) {
     password: false,
   });
 
-  // Регулярные выражения для валидации
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^\+7[0-9]{10}$/;
 
-  // Форматирование номера телефона
   const formatPhoneNumber = (text) => {
     let cleaned = text.replace(/[^+\d]/g, '');
     if (!cleaned) {
@@ -148,29 +160,44 @@ export default function RegisterScreen({ navigation }) {
     if (!validateFields()) return;
     try {
       const role = isRelative ? 'Relative' : 'Patient';
-      await register(email, password, firstName, lastName, role, middleName || undefined, rawPhoneNumber || undefined);
-      alert('Регистрация успешна!');
+      await registerUser({
+        email,
+        password,
+        firstName,
+        lastName,
+        role,
+        middleName: middleName || undefined,
+        phoneNumber: rawPhoneNumber || undefined,
+      });
       navigation.navigate('Login');
     } catch (error) {
-      alert('Ошибка: ' + error.message);
+      console.error('Register error:', error);
+      const code = error.code || 'REGISTER_ERROR';
+      const defaultMessage = 'Произошла ошибка. Попробуйте ещё раз.';
+      const message = ERROR_MESSAGES[code] || defaultMessage;
+      setErrors((prev) => ({
+        ...prev,
+        password: message,
+      }));
     }
   };
 
   return (
     <KeyboardAvoidingView
+      style={styles.registerScreen.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.containerCenter}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={styles.registerScreen.contentContainer}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.titleCenter}>Регистрация</Text>
-          <View>
+          <Text style={styles.registerScreen.title}>Регистрация</Text>
+          <View style={styles.registerScreen.inputContainer}>
             <TextInput
-              style={[styles.input, errors.email && touched.email && styles.inputError]}
+              style={[styles.common.input, errors.email && touched.email && styles.common.inputError]}
               placeholder="Email*"
               value={email}
               onChangeText={(text) => {
@@ -186,11 +213,11 @@ export default function RegisterScreen({ navigation }) {
               keyboardType="email-address"
               placeholderTextColor="#999"
             />
-            {errors.email && touched.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            {errors.email && touched.email && <Text style={styles.common.errorText}>{errors.email}</Text>}
           </View>
-          <View>
+          <View style={styles.registerScreen.inputContainer}>
             <TextInput
-              style={[styles.input, errors.firstName && touched.firstName && styles.inputError]}
+              style={[styles.common.input, errors.firstName && touched.firstName && styles.common.inputError]}
               placeholder="Имя*"
               value={firstName}
               onChangeText={(text) => {
@@ -210,12 +237,12 @@ export default function RegisterScreen({ navigation }) {
               placeholderTextColor="#999"
             />
             {errors.firstName && touched.firstName && (
-              <Text style={styles.errorText}>{errors.firstName}</Text>
+              <Text style={styles.common.errorText}>{errors.firstName}</Text>
             )}
           </View>
-          <View>
+          <View style={styles.registerScreen.inputContainer}>
             <TextInput
-              style={[styles.input, errors.lastName && touched.lastName && styles.inputError]}
+              style={[styles.common.input, errors.lastName && touched.lastName && styles.common.inputError]}
               placeholder="Фамилия*"
               value={lastName}
               onChangeText={(text) => {
@@ -235,12 +262,12 @@ export default function RegisterScreen({ navigation }) {
               placeholderTextColor="#999"
             />
             {errors.lastName && touched.lastName && (
-              <Text style={styles.errorText}>{errors.lastName}</Text>
+              <Text style={styles.common.errorText}>{errors.lastName}</Text>
             )}
           </View>
-          <View>
+          <View style={styles.registerScreen.inputContainer}>
             <TextInput
-              style={[styles.input, errors.middleName && touched.middleName && styles.inputError]}
+              style={[styles.common.input, errors.middleName && touched.middleName && styles.common.inputError]}
               placeholder="Отчество"
               value={middleName}
               onChangeText={(text) => {
@@ -260,12 +287,12 @@ export default function RegisterScreen({ navigation }) {
               placeholderTextColor="#999"
             />
             {errors.middleName && touched.middleName && (
-              <Text style={styles.errorText}>{errors.middleName}</Text>
+              <Text style={styles.common.errorText}>{errors.middleName}</Text>
             )}
           </View>
-          <View>
+          <View style={styles.registerScreen.inputContainer}>
             <TextInput
-              style={[styles.input, errors.phoneNumber && touched.phoneNumber && styles.inputError]}
+              style={[styles.common.input, errors.phoneNumber && touched.phoneNumber && styles.common.inputError]}
               placeholder="+7 (XXX) XXX-XX-XX"
               value={displayPhoneNumber}
               onChangeText={handlePhoneChange}
@@ -280,12 +307,12 @@ export default function RegisterScreen({ navigation }) {
               placeholderTextColor="#999"
             />
             {errors.phoneNumber && touched.phoneNumber && (
-              <Text style={styles.errorText}>{errors.phoneNumber}</Text>
+              <Text style={styles.common.errorText}>{errors.phoneNumber}</Text>
             )}
           </View>
-          <View>
+          <View style={styles.registerScreen.inputContainer}>
             <TextInput
-              style={[styles.input, errors.password && touched.password && styles.inputError]}
+              style={[styles.common.input, errors.password && touched.password && styles.common.inputError]}
               placeholder="Пароль*"
               value={password}
               onChangeText={(text) => {
@@ -302,26 +329,26 @@ export default function RegisterScreen({ navigation }) {
               placeholderTextColor="#999"
             />
             {errors.password && touched.password && (
-              <Text style={styles.errorText}>{errors.password}</Text>
+              <Text style={styles.common.errorText}>{errors.password}</Text>
             )}
           </View>
-          <View style={styles.switchContainer}>
+          <View style={styles.registerScreen.switchContainer}>
             <Switch
               value={isRelative}
               onValueChange={setIsRelative}
-              trackColor={{ false: '#999', true: theme.colors.primary }}
-              thumbColor={isRelative ? '#fff' : '#fff'}
+              trackColor={{ false: '#999', true: '#007AFF' }}
+              thumbColor="#fff"
               ios_backgroundColor="#999"
             />
-            <Text style={styles.switchLabel}>
+            <Text style={styles.registerScreen.switchLabel}>
               Я буду отслеживать приём лекарств другого пользователя
             </Text>
           </View>
-          <TouchableOpacity style={styles.button} onPress={handleRegister}>
-            <Text style={styles.buttonText}>Подтвердить</Text>
+          <TouchableOpacity style={styles.common.button} onPress={handleRegister}>
+            <Text style={styles.common.buttonText}>Подтвердить</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.link}>Уже есть аккаунт? Войти</Text>
+            <Text style={styles.registerScreen.link}>Уже есть аккаунт? Войти</Text>
           </TouchableOpacity>
         </ScrollView>
       </TouchableWithoutFeedback>
