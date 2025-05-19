@@ -8,8 +8,8 @@ import {
   View,
   LayoutAnimation,
 } from 'react-native';
-import { debounce } from '../../utils/debounce';
-import styles from '../../constants/globalStyles';
+import { debounce } from '../utils/debounce';
+import styles from '../constants/globalStyles';
 
 const AutocompleteInput = ({
   value,

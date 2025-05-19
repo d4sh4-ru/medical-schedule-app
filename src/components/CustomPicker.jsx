@@ -8,7 +8,7 @@ import {
   LayoutAnimation,
   Platform,
 } from 'react-native';
-import styles from '../../constants/globalStyles';
+import styles from '../constants/globalStyles';
 
 const CustomPicker = ({ value, options, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);

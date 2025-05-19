@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { isSameDate } from '../../utils/dateUtils';
-import styles from '../../constants/globalStyles';
+import { isSameDate } from '../utils/dateUtils';
+import styles from '../constants/globalStyles';
 
 const { width } = Dimensions.get('window');
 

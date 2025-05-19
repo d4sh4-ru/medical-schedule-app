@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import styles from '../../constants/globalStyles';
-import { formatTime, formatDate } from '../../utils/dateUtils';
+import styles from '../constants/globalStyles';
+import { formatTime, formatDate } from '../utils/dateUtils';
 
 const ScheduleModal = ({
   visible,

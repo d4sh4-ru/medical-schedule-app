@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
-import { getTimeRemaining, getFormattedDate } from '../../utils/timeUtils';
-import styles from '../../constants/globalStyles';
+import { getTimeRemaining, getFormattedDate } from '../utils/timeUtils';
+import styles from '../constants/globalStyles';
 
 const NotificationsList = ({
   notifications,
