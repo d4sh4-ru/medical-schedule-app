@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { isSameDate } from '../utils/dateUtils';
 import styles from '../constants/globalStyles';
+import log from '../utils/coloredLog';
 
 const { width } = Dimensions.get('window');
 
@@ -11,37 +12,74 @@ const shortWeekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 const WeekCalendar = ({ weeks, selectedDate, onSelectDay, onWeekChange }) => {
   const flatListRef = useRef(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const handlePrevWeek = () => {
-    const currentIndex = weeks.findIndex(week =>
+  // Вычисляем начальный индекс недели
+  useEffect(() => {
+    const initialIndex = weeks.findIndex(week =>
       week.some(day => isSameDate(day.date, selectedDate))
     );
+    if (initialIndex !== -1 && initialIndex !== currentIndex) {
+      setCurrentIndex(initialIndex);
+      flatListRef.current?.scrollToIndex({ index: initialIndex, animated: false });
+      log.green('[WeekCalendar] Initial scroll to index:', initialIndex);
+    }
+  }, [weeks, selectedDate]);
+
+  const handlePrevWeek = () => {
+    if (isScrolling) {
+      log.warn('[WeekCalendar] Scroll in progress, ignoring prev week');
+      return;
+    }
+    setIsScrolling(true);
     const targetIndex = Math.max(0, currentIndex - 1);
-    flatListRef.current.scrollToIndex({ index: targetIndex, animated: true });
-    if (onWeekChange && targetIndex !== currentIndex) {
-      const newSelectedDate = weeks[targetIndex][0].date;
-      onWeekChange(newSelectedDate);
+    if (targetIndex !== currentIndex) {
+      flatListRef.current.scrollToIndex({ index: targetIndex, animated: true });
+      log.green('[WeekCalendar] Scrolling to prev week:', targetIndex);
+    } else {
+      setIsScrolling(false);
     }
   };
 
   const handleNextWeek = () => {
-    const currentIndex = weeks.findIndex(week =>
-      week.some(day => isSameDate(day.date, selectedDate))
-    );
-    const targetIndex = Math.min(weeks.length - 1, currentIndex + 1);
-    flatListRef.current.scrollToIndex({ index: targetIndex, animated: true });
-    if (onWeekChange && targetIndex !== currentIndex) {
-      const newSelectedDate = weeks[targetIndex][0].date;
-      onWeekChange(newSelectedDate);
+    if (isScrolling) {
+      log.warn('[WeekCalendar] Scroll in progress, ignoring next week');
+      return;
     }
+    setIsScrolling(true);
+    const targetIndex = Math.min(weeks.length - 1, currentIndex + 1);
+    if (targetIndex !== currentIndex) {
+      flatListRef.current.scrollToIndex({ index: targetIndex, animated: true });
+      log.green('[WeekCalendar] Scrolling to next week:', targetIndex);
+    } else {
+      setIsScrolling(false);
+    }
+  };
+
+  // Обработка завершения прокрутки
+  const handleScrollEnd = (event) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(contentOffsetX / (width - 32));
+    if (newIndex !== currentIndex) {
+      setCurrentIndex(newIndex);
+      if (onWeekChange && weeks[newIndex]) {
+        const newSelectedDate = weeks[newIndex][0].date;
+        onWeekChange(newSelectedDate);
+        log.green('[WeekCalendar] Scroll ended, week changed:', {
+          newIndex,
+          newSelectedDate: newSelectedDate.toISOString(),
+        });
+      }
+    }
+    setIsScrolling(false);
   };
 
   const renderWeek = ({ item: week }) => (
     <View style={styles.weekCalendar.weekDaysContainer}>
       {week.map((day, index) => {
-        // Получаем сокращённое название дня недели из даты
-        const dayIndex = day.date.getDay(); // 0 (воскресенье) - 6 (суббота)
-        const shortLabel = shortWeekdays[dayIndex === 0 ? 6 : dayIndex - 1]; // Сдвиг для ПН=0, ВС=6
+        const dayIndex = day.date.getDay();
+        const shortLabel = shortWeekdays[dayIndex === 0 ? 6 : dayIndex - 1];
 
         return (
           <TouchableOpacity
@@ -85,21 +123,25 @@ const WeekCalendar = ({ weeks, selectedDate, onSelectDay, onWeekChange }) => {
   });
 
   const onScrollToIndexFailed = (info) => {
-    console.warn('Scroll to index failed:', info);
-    flatListRef.current.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
+    log.warn('[WeekCalendar] Scroll to index failed:', info);
+    flatListRef.current.scrollToOffset({
+      offset: info.averageItemLength * info.index,
+      animated: true,
+    });
+    setIsScrolling(false);
   };
 
   return (
     <View style={styles.weekCalendar.container}>
       <View style={styles.weekCalendar.controls}>
-        <TouchableOpacity onPress={handlePrevWeek}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
+        <TouchableOpacity onPress={handlePrevWeek} disabled={isScrolling}>
+          <Ionicons name="chevron-back" size={24} color={isScrolling ? '#ccc' : '#000'} />
         </TouchableOpacity>
         <Text style={styles.weekCalendar.weekLabel}>
           {selectedDate.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })}
         </Text>
-        <TouchableOpacity onPress={handleNextWeek}>
-          <Ionicons name="chevron-forward" size={24} color="#000" />
+        <TouchableOpacity onPress={handleNextWeek} disabled={isScrolling}>
+          <Ionicons name="chevron-forward" size={24} color={isScrolling ? '#ccc' : '#000'} />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -110,9 +152,9 @@ const WeekCalendar = ({ weeks, selectedDate, onSelectDay, onWeekChange }) => {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        initialScrollIndex={3}
         getItemLayout={getItemLayout}
         onScrollToIndexFailed={onScrollToIndexFailed}
+        onMomentumScrollEnd={handleScrollEnd}
       />
     </View>
   );

@@ -272,7 +272,6 @@ export default function ScheduleScreen() {
           textDayHeaderFontSize: 14,
         }}
       />
-      {/* TODO: Накинуть рамку на контейнер с цветом '#007AFF' и ширина 1px */}
       <View style={styles.scheduleScreen.notificationsContainer}>
         <NotificationsList
           notifications={notifications}
@@ -285,6 +284,7 @@ export default function ScheduleScreen() {
           isRetrying={false}
           getTodayFormatted={formatDate}
           onNotificationPress={openModal}
+          disableSwipes={true}
         />
       </View>
       <ScheduleModal
