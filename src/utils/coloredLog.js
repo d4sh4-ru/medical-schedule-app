@@ -32,6 +32,7 @@ const log = {
   cyan: (...args) => colorize('cyan', ...args),
   white: (...args) => colorize('white', ...args),
   raw: colorize,
+  error: (message, ...args) => console.error(`\x1b[31m${message}`, ...args, `\x1b[0m`),
 };
 
 export default log;

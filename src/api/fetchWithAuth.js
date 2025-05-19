@@ -1,52 +1,29 @@
-import { getToken, removeToken } from '../services/userService';
+import apiClient from './axiosInstance';
 import log from '../utils/coloredLog';
 
 /**
- * Выполняет HTTP-запрос с авторизацией с использованием токена.
- * Добавляет заголовок `Authorization` с токеном, если он доступен.
- * Если сервер возвращает ошибку 401 (Unauthorized), удаляет токен и перенаправляет на экран входа.
+ * Выполняет HTTP-запрос с авторизацией, используя axios.
+ * Токен и обработка 401 выполняются перехватчиками в axiosInstance.
  * 
- * @param {string} url - URL запрашиваемого ресурса.
- * @param {Object} [options={}] - Опции для запроса, включая метод, тело и другие заголовки.
- * @param {Object} [navigation=null] - Объект навигации, используемый для перенаправления на экран входа в случае ошибки 401.
- * @returns {Promise<Response>} Ответ от сервера (объект `Response`).
- * @throws {Error} Если токен недействителен или истёк, выбрасывается ошибка с сообщением "Unauthorized".
+ * @param {string} url - URL запрашиваемого ресурса (относительный или полный).
+ * @param {Object} [options={}] - Опции для запроса (method, headers, body и т.д.).
+ * @param {Object} [navigation=null] - Объект навигации для перенаправления на экран входа при 401.
+ * @returns {Promise<AxiosResponse>} Ответ от сервера (объект AxiosResponse).
+ * @throws {Error} Если запрос не удался (например, ошибка сети или 401).
  */
 export const fetchWithAuth = async (url, options = {}, navigation = null) => {
   log.cyan('[fetchWithAuth] called:', { url, options, navigation: !!navigation });
 
   try {
-    const token = await getToken();
-    log.cyan('[fetchWithAuth] Token retrieved:', token ? 'Token exists' : 'No token');
-
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    log.cyan('[fetchWithAuth] Sending request:', { url, method: options.method || 'GET', headers });
-
-    const response = await fetch(url, {
+    // Добавляем navigation в конфигурацию для перехватчика
+    const response = await apiClient({
+      url,
+      method: options.method || 'GET',
+      headers: options.headers || {},
+      data: options.body, // axios использует data вместо body
       ...options,
-      headers,
+      navigation, // Передаём navigation для обработки 401
     });
-
-    log.cyan('[fetchWithAuth] Response received:', {
-      status: response.status,
-      ok: response.ok,
-      url: response.url,
-    });
-
-    if (response.status === 401 && navigation) {
-      log.cyan('[fetchWithAuth] Unauthorized (401), removing token and navigating to Login');
-      await removeToken();
-      navigation.replace('Login');
-      throw new Error('Unauthorized: Токен недействителен или истёк');
-    }
 
     return response;
   } catch (err) {

@@ -1,16 +1,16 @@
 import { fetchWithAuth } from './fetchWithAuth';
 import config from '../config/config';
 
-const MEDICATION_API_URL=`${config.API_URL}/medications`
+const MEDICATION_API_URL = `${config.API_URL}/medications`;
 
 export const fetchMedicationNames = async (isDietarySupplement = null, navigation) => {
   const url = new URL(`${MEDICATION_API_URL}/names`);
   if (isDietarySupplement !== null) {
     url.searchParams.append('isDietarySupplement', isDietarySupplement);
   }
-  console.log("fetch medications with url: ", url)
-  const response = await fetchWithAuth(url, { method: 'GET' }, navigation);
-  return await response.json();
+  console.log('fetch medications with url:', url.toString());
+  const response = await fetchWithAuth(url.toString(), { method: 'GET' }, navigation);
+  return response.data;
 };
 
 export const fetchMedicationDetails = async (name, navigation) => {
@@ -19,7 +19,7 @@ export const fetchMedicationDetails = async (name, navigation) => {
     { method: 'GET' },
     navigation
   );
-  return await response.json();
+  return response.data;
 };
 
 export const searchMedications = async (prefix, navigation) => {
@@ -28,7 +28,7 @@ export const searchMedications = async (prefix, navigation) => {
     { method: 'GET' },
     navigation
   );
-  return await response.json();
+  return response.data;
 };
 
 export const checkMedicationExists = async (name, navigation) => {
@@ -37,7 +37,7 @@ export const checkMedicationExists = async (name, navigation) => {
     { method: 'GET' },
     navigation
   );
-  return await response.json();
+  return response.data;
 };
 
 export const fetchMedicationInstruction = async (name, navigation) => {
@@ -46,7 +46,7 @@ export const fetchMedicationInstruction = async (name, navigation) => {
     { method: 'GET' },
     navigation
   );
-  return await response.json();
+  return response.data;
 };
 
 export const createDietarySupplement = async (supplement, navigation) => {
@@ -58,5 +58,5 @@ export const createDietarySupplement = async (supplement, navigation) => {
     },
     navigation
   );
-  return await response.json();
+  return response.data;
 };
