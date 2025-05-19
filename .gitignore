@@ -37,6 +37,7 @@ yarn-error.*
 *.tsbuildinfo
 
 # Android/Gradle
+android/
 android/.gradle/
 android/app/build/
 android/build/
