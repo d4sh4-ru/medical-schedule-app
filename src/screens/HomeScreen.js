@@ -148,12 +148,16 @@ const HomeScreen = () => {
         // Свайп влево: начало недели, содержащей newDate
         weekStart.setDate(newDate.getDate() - newDate.getDay() + (newDate.getDay() === 0 ? -6 : 1));
       } else {
-        // Свайп вправо: начало предыдущей недели
-        weekStart.setDate(newDate.getDate() - newDate.getDay() - 7);
+        // Свайп вправо: начало недели, содержащей newDate
+        weekStart.setDate(newDate.getDate() - newDate.getDay() + (newDate.getDay() === 0 ? -6 : 1));
       }
       log.magenta('[HomeScreen] Calculated weekStart:', weekStart.toISOString());
       handleWeekChange(weekStart);
-      log.magenta('[HomeScreen] Week changed via swipe:', weekStart.toISOString());
+      setSelectedDate(newDate); // Сохраняем newDate как selectedDate
+      log.magenta('[HomeScreen] Week changed via swipe:', {
+        weekStart: weekStart.toISOString(),
+        selectedDate: newDate.toISOString(),
+      });
     } else {
       setSelectedDate(newDate);
       log.magenta('[HomeScreen] Date changed via swipe:', newDate.toISOString());
