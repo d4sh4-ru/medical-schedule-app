@@ -35,7 +35,7 @@ export default function SettingsScreen() {
   const renderLinkedUser = ({ item }) => (
     <View style={styles.common.card}>
       <Text style={styles.common.text}>
-        {item.userInfo.firstName} {item.userInfo.lastName}
+        {item.firstName} {item.lastName}
       </Text>
     </View>
   );
