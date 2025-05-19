@@ -14,7 +14,6 @@ const NotificationsList = ({
   onNotificationPress,
   isRetrying,
   getTodayFormatted,
-  //TODO: добавить тип с кнопкой или со статусами
 }) => {
   const renderNotification = ({ item }) => {
     const isTaken = item.status === 'accepted';
