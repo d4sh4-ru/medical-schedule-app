@@ -1,4 +1,3 @@
-// services/notificationService.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   fetchTodayNotifications,
@@ -6,49 +5,41 @@ import {
   fetchMonthNotificationDays,
   confirmNotification,
 } from '../api/notificationApi';
+import log from '../utils/coloredLog';
 
-export const getNotificationsForToday = async (navigation, setIsLoadingNotifications, setNotifications, setNotificationsError) => {
+export const getNotificationsForToday = async (navigation) => {
   try {
-    setIsLoadingNotifications(true);
     const data = await fetchTodayNotifications(navigation);
-    console.log('getNotificationsForToday data:', data);
     const notificationsData = Array.isArray(data) ? data : [];
-    setNotifications(notificationsData);
-    console.log('getNotificationsForToday set:', notificationsData);
     const today = new Date().toISOString().split('T')[0];
     await AsyncStorage.setItem(`notifications_${today}`, JSON.stringify(notificationsData));
-    setNotificationsError(null);
-    console.log('getNotificationsForToday returning:', notificationsData);
-    return notificationsData; // Убедимся, что возвращаем данные
+    return notificationsData;
   } catch (err) {
-    const errorMessage = err.message.includes('Network request failed')
-      ? 'Не удалось загрузить уведомления. Проверьте подключение к интернету.'
-      : err.message.includes('fetchWithAuth')
-      ? 'Ошибка конфигурации приложения. Обратитесь в поддержку.'
-      : 'Не удалось загрузить уведомления';
-    setNotificationsError(errorMessage);
-    console.error('Error fetching today notifications:', err);
+    log.error('[getNotificationsForToday] Error:', err.message, { stack: err.stack });
     const today = new Date().toISOString().split('T')[0];
     const cached = await AsyncStorage.getItem(`notifications_${today}`);
     if (cached) {
-      const cachedData = JSON.parse(cached);
-      const notificationsData = Array.isArray(cachedData) ? cachedData : [];
-      setNotifications(notificationsData);
-      console.log('getNotificationsForToday cached:', notificationsData);
-      return notificationsData; // Возвращаем кэшированные данные
+      try {
+        const cachedData = JSON.parse(cached);
+        return Array.isArray(cachedData) ? cachedData : [];
+      } catch (parseErr) {
+        log.error('[getNotificationsForToday] Error parsing cached data:', parseErr.message);
+      }
     }
-    throw err;
-  } finally {
-    setIsLoadingNotifications(false);
+    throw new Error(
+      err.message.includes('Network request failed')
+        ? 'Не удалось загрузить уведомления. Проверьте подключение к интернету.'
+        : err.message || 'Не удалось загрузить уведомления'
+    );
   }
 };
 
 export const getNotificationsForDay = async (day, month, year, navigation) => {
   try {
     const data = await fetchDayNotifications(day, month, year, navigation);
-    return data;
+    return Array.isArray(data) ? data : [];
   } catch (err) {
-    console.error('Error fetching day notifications:', err);
+    log.error('[getNotificationsForDay] Error:', err.message, { stack: err.stack });
     throw new Error('Не удалось загрузить уведомления за день');
   }
 };
@@ -58,7 +49,7 @@ export const getNotificationDaysForMonth = async (month, year, navigation) => {
     const data = await fetchMonthNotificationDays(month, year, navigation);
     return data.days || [];
   } catch (err) {
-    console.error('Error fetching month notification days:', err);
+    log.error('[getNotificationDaysForMonth] Error:', err.message, { stack: err.stack });
     return [];
   }
 };
@@ -72,9 +63,10 @@ export const confirmUserNotification = async (id, notifications, setNotification
         : notif
     );
     setNotifications(updatedNotifications);
-    await AsyncStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+    const today = new Date().toISOString().split('T')[0];
+    await AsyncStorage.setItem(`notifications_${today}`, JSON.stringify(updatedNotifications));
   } catch (err) {
-    console.error('Error confirming notification:', err);
-    throw new Error('Не удалось подтвердить уведомление');
+    log.warn('[confirmUserNotification] Error:', err.message, { code: err.code, stack: err.stack });
+    throw err;
   }
 };

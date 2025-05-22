@@ -1,23 +1,21 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetchWithAuth } from './fetchWithAuth';
-import config from '../config/config';
+import axios from './axiosInstance'; // Импортируем настроенный экземпляр axios
 import log from '../utils/coloredLog';
 
-const USER_API_URL = `${config.API_URL}/me`;
+const USER_API_URL = '/me'; // Относительный путь, так как baseURL задан в axiosConfig
 
 export const fetchLinkedUsers = async (navigation) => {
   try {
-    const response = await fetchWithAuth(
-      `${USER_API_URL}/related-users`,
-      { method: 'GET' },
-      navigation
-    );
+    const response = await axios.get(`${USER_API_URL}/related-users`, { navigation });
     const data = response.data;
     await AsyncStorage.setItem('linkedUsers', JSON.stringify(data));
-    log.cyan('[fetchLinkedUsers] Success:', data);
     return { data, error: null };
   } catch (err) {
-    log.error('[fetchLinkedUsers] Error:', err.message);
+    log.error('[fetchLinkedUsers] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
     const cached = await AsyncStorage.getItem('linkedUsers');
     return {
       data: cached ? JSON.parse(cached) : [],
@@ -28,16 +26,15 @@ export const fetchLinkedUsers = async (navigation) => {
 
 export const setTimeZone = async (timeZone, navigation) => {
   try {
-    const response = await fetchWithAuth(
-      `${USER_API_URL}/timezone/${timeZone}`,
-      { method: 'POST' },
-      navigation
-    );
+    const response = await axios.post(`${USER_API_URL}/timezone/${timeZone}`, {}, { navigation });
     const data = response.data;
-    log.cyan('[setTimeZone] Success:', data);
     return { data, error: null };
   } catch (err) {
-    log.error('[setTimeZone] Error:', err.message);
+    log.error('[setTimeZone] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
     return {
       data: null,
       error: 'Не удалось установить часовой пояс',
@@ -47,17 +44,16 @@ export const setTimeZone = async (timeZone, navigation) => {
 
 export const fetchDeviceTokens = async (navigation) => {
   try {
-    const response = await fetchWithAuth(
-      `${USER_API_URL}/token`,
-      { method: 'GET' },
-      navigation
-    );
+    const response = await axios.get(`${USER_API_URL}/token`, { navigation });
     const data = response.data;
     await AsyncStorage.setItem('deviceTokens', JSON.stringify(data));
-    log.cyan('[fetchDeviceTokens] Success:', data);
     return { data, error: null };
   } catch (err) {
-    log.error('[fetchDeviceTokens] Error:', err.message);
+    log.error('[fetchDeviceTokens] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
     const cached = await AsyncStorage.getItem('deviceTokens');
     return {
       data: cached ? JSON.parse(cached) : null,
@@ -68,14 +64,7 @@ export const fetchDeviceTokens = async (navigation) => {
 
 export const registerDeviceToken = async (tokenData, navigation) => {
   try {
-    const response = await fetchWithAuth(
-      `${USER_API_URL}/token`,
-      {
-        method: 'POST',
-        body: JSON.stringify(tokenData),
-      },
-      navigation
-    );
+    const response = await axios.post(`${USER_API_URL}/token`, tokenData, { navigation });
     const data = response.data;
     const cachedTokens = await AsyncStorage.getItem('deviceTokens');
     const tokens = cachedTokens ? JSON.parse(cachedTokens) : [];
@@ -91,10 +80,13 @@ export const registerDeviceToken = async (tokenData, navigation) => {
       });
       await AsyncStorage.setItem('deviceTokens', JSON.stringify(tokens));
     }
-    log.cyan('[registerDeviceToken] Success:', data);
     return { data, error: null };
   } catch (err) {
-    log.error('[registerDeviceToken] Error:', err.message);
+    log.error('[registerDeviceToken] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
     return {
       data: null,
       error: 'Не удалось зарегистрировать токен устройства',
@@ -104,11 +96,7 @@ export const registerDeviceToken = async (tokenData, navigation) => {
 
 export const deleteDeviceToken = async (token, navigation) => {
   try {
-    const response = await fetchWithAuth(
-      `${USER_API_URL}/token/${token}`,
-      { method: 'DELETE' },
-      navigation
-    );
+    const response = await axios.delete(`${USER_API_URL}/token/${token}`, { navigation });
     const data = response.data;
     const cachedTokens = await AsyncStorage.getItem('deviceTokens');
     if (cachedTokens) {
@@ -116,10 +104,13 @@ export const deleteDeviceToken = async (token, navigation) => {
       const updatedTokens = tokens.filter((t) => t.deviceToken !== token);
       await AsyncStorage.setItem('deviceTokens', JSON.stringify(updatedTokens));
     }
-    log.cyan('[deleteDeviceToken] Success:', data);
     return { data, error: null };
   } catch (err) {
-    log.error('[deleteDeviceToken] Error:', err.message);
+    log.error('[deleteDeviceToken] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
     return {
       data: null,
       error: 'Не удалось удалить токен устройства',
@@ -128,8 +119,15 @@ export const deleteDeviceToken = async (token, navigation) => {
 };
 
 export const fetchMe = async (navigation) => {
-  const response = await fetchWithAuth(`${USER_API_URL}`, {
-    method: 'GET',
-  }, navigation);
-  return response.data;
+  try {
+    const response = await axios.get(USER_API_URL, { navigation });
+    return response.data;
+  } catch (err) {
+    log.error('[fetchMe] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
+    throw err;
+  }
 };

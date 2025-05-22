@@ -1,39 +1,74 @@
-import { fetchWithAuth } from './fetchWithAuth';
-import config from '../config/config';
+import axios from './axiosInstance'; // Импортируем настроенный экземпляр axios
+import log from '../utils/coloredLog';
+
+const PLAN_API_URL = '/plan'; // Относительный путь, так как baseURL задан в axiosConfig
 
 export const createPlanRequest = async (plan, navigation) => {
-  const response = await fetchWithAuth(`${config.API_URL}/plan`, {
-    method: 'POST',
-    body: JSON.stringify(plan),
-  }, navigation);
-  return response.data;
+  try {
+    const response = await axios.post(PLAN_API_URL, plan, { navigation });
+    return response.data;
+  } catch (err) {
+    log.error('[createPlanRequest] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
+    throw err;
+  }
 };
 
 export const fetchPlansRequest = async (navigation) => {
-  const response = await fetchWithAuth(`${config.API_URL}/plan`, {
-    method: 'GET',
-  }, navigation);
-  return response.data;
+  try {
+    const response = await axios.get(PLAN_API_URL, { navigation });
+    return response.data;
+  } catch (err) {
+    log.error('[fetchPlansRequest] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
+    throw err;
+  }
 };
 
 export const fetchPlanRequest = async (id, navigation) => {
-  const response = await fetchWithAuth(`${config.API_URL}/plan/${id}`, {
-    method: 'GET',
-  }, navigation);
-  return response.data;
+  try {
+    const response = await axios.get(`${PLAN_API_URL}/${id}`, { navigation });
+    return response.data;
+  } catch (err) {
+    log.error('[fetchPlanRequest] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
+    throw err;
+  }
 };
 
 export const deletePlanRequest = async (id, navigation) => {
-  const response = await fetchWithAuth(`${config.API_URL}/plan/${id}`, {
-    method: 'DELETE',
-  }, navigation);
-  return response.data;
+  try {
+    const response = await axios.delete(`${PLAN_API_URL}/${id}`, { navigation });
+    return response.data;
+  } catch (err) {
+    log.error('[deletePlanRequest] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
+    throw err;
+  }
 };
 
 export const updatePlanRequest = async (id, updatedPlan, navigation) => {
-  const response = await fetchWithAuth(`${config.API_URL}/plan`, {
-    method: 'PUT',
-    body: JSON.stringify({ id, ...updatedPlan }),
-  }, navigation);
-  return response.data;
+  try {
+    const response = await axios.put(PLAN_API_URL, { id, ...updatedPlan }, { navigation });
+    return response.data;
+  } catch (err) {
+    log.error('[updatePlanRequest] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
+    throw err;
+  }
 };

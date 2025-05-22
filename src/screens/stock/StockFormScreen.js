@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../../constants/globalStyles';
@@ -10,7 +10,7 @@ import ErrorModal from '../../components/ErrorModal';
 
 export default function StockFormScreen({ route }) {
   const navigation = useNavigation();
-  const [medicationTradeName, setMedicationTradeName] = useState('');
+  const [medicationTradeName, setMedicationTradeName] = useState(route.params?.medicationTradeName || '');
   const [remainingQuantity, setRemainingQuantity] = useState('');
   const [errorModal, setErrorModal] = useState({ visible: false, error: null });
   const currentDate = new Date().toISOString();
@@ -40,7 +40,7 @@ export default function StockFormScreen({ route }) {
       }
       navigation.goBack();
       if (fetchStocks) {
-        await fetchStocks(); // Обновляем список запасов
+        await fetchStocks();
       }
       console.log('Stock created:', stockData);
     } catch (err) {

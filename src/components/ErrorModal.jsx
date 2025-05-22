@@ -8,7 +8,6 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import log from "../utils/coloredLog";
 import styles from "../constants/globalStyles";
 
 const ErrorModal = ({
@@ -57,7 +56,7 @@ const ErrorModal = ({
                   data={errorData}
                   renderItem={renderErrorItem}
                   keyExtractor={(item, index) => index.toString()}
-                  style={{ maxHeight: 200, marginBottom: 20 }}
+                  style={{ maxHeight: 200, marginBottom: 0 }}
                 />
               ) : (
                 <View style={styles.scheduleScreen.timeItem}>
@@ -74,7 +73,6 @@ const ErrorModal = ({
               <View
                 style={[
                   styles.scheduleScreen.modalButtonContainer,
-                  { paddingBottom: 10, marginTop: 20 },
                 ]}
               >
                 {secondaryButtonText && onSecondaryAction && (
@@ -104,8 +102,7 @@ const ErrorModal = ({
                   style={[
                     styles.scheduleScreen.modalButton,
                     {
-                      backgroundColor: "#666",
-                      minHeight: 48,
+                      backgroundColor: "#777",
                       flex: secondaryButtonText ? 1 : undefined, // Если есть вторая кнопка, делим пространство
                       marginLeft: secondaryButtonText ? 10 : 0, // Отступ только если есть вторая кнопка
                     },

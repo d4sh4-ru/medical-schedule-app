@@ -29,7 +29,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    log.error('[axios] Request error:', error.message);
+    log.warn('[axios] Request error:', error.message);
     return Promise.reject(error);
   }
 );
@@ -71,7 +71,7 @@ apiClient.interceptors.response.use(
       };
     }
 
-    log.error('[axios] Response error:', {
+    log.warn('[axios] Response error:', {
       responseCode: response.data.code,
       responseMessage: response.data.message,
       code: errorDetails.code,

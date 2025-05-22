@@ -4,7 +4,6 @@ import log from '../utils/coloredLog';
 export const fetchStocksRequest = async (navigation) => {
   try {
     const response = await axios.get('/plan/restock', { navigation });
-    console.log(response.data)
     return { data: response.data, error: null };
   } catch (err) {
     log.error('[fetchStocksRequest] Error:', err.message, { code: err.code });

@@ -1,12 +1,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { getWeekDaysForCalendar, getTodayFormatted } from '../utils/dateUtils';
 import { getNotificationsForToday, getNotificationsForDay, confirmUserNotification } from '../services/notificationService';
 import NavBar from '../components/NavBar';
 import Header from '../components/Header';
 import WeekCalendar from '../components/WeekCalendar';
 import NotificationsList from '../components/NotificationsList';
+import ErrorModal from '../components/ErrorModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../constants/globalStyles';
 import log from '../utils/coloredLog';
@@ -18,7 +19,7 @@ const HomeScreen = () => {
   const [weeks, setWeeks] = useState(generateWeeks(today));
   const [notifications, setNotifications] = useState([]);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
-  const [notificationsError, setNotificationsError] = useState(null);
+  const [errorModal, setErrorModal] = useState({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
   const [isRetrying, setIsRetrying] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -56,13 +57,13 @@ const HomeScreen = () => {
       const isToday = date.toDateString() === today.toDateString();
       let data;
       if (isToday) {
-        data = await getNotificationsForToday(null, setIsLoadingNotifications, setNotifications, setNotificationsError);
+        data = await getNotificationsForToday(navigation);
       } else {
         data = await getNotificationsForDay(
           date.getDate(),
           date.getMonth() + 1,
           date.getFullYear(),
-          null
+          navigation
         );
       }
       log.magenta('[HomeScreen] Loaded notifications:', { date: date.toISOString(), data });
@@ -73,23 +74,29 @@ const HomeScreen = () => {
       }
       setNotifications(notificationsData);
       log.magenta('[HomeScreen] Set notifications:', notificationsData);
-      setNotificationsError(null);
+      setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
 
       const cacheKey = `notifications_${date.toISOString().split('T')[0]}`;
       await AsyncStorage.setItem(cacheKey, JSON.stringify(notificationsData));
     } catch (err) {
       log.error('[HomeScreen] Error in loadNotifications:', err.message, { stack: err.stack });
-      const errorMessage = err.message.includes('fetchWithAuth')
-        ? 'Ошибка конфигурации приложения. Обратитесь в поддержку.'
-        : 'Не удалось загрузить уведомления. Проверьте подключение к интернету.';
-      setNotificationsError(errorMessage);
+      setErrorModal({
+        visible: true,
+        error: err.message || 'Не удалось загрузить уведомления. Проверьте подключение к интернету.',
+        secondaryButtonText: null,
+        onSecondaryAction: null,
+      });
       const cacheKey = `notifications_${date.toISOString().split('T')[0]}`;
       const cached = await AsyncStorage.getItem(cacheKey);
       if (cached) {
+        try {
         const cachedData = JSON.parse(cached);
         const notificationsData = Array.isArray(cachedData) ? cachedData : [];
         setNotifications(notificationsData);
         log.magenta('[HomeScreen] Set cached notifications:', notificationsData);
+        } catch (parseErr) {
+          log.error('[HomeScreen] Error parsing cached data:', parseErr.message);
+        }
       }
     } finally {
       setIsLoadingNotifications(false);
@@ -108,10 +115,31 @@ const HomeScreen = () => {
     if (notificationId === 0) return;
     setIsRetrying(true);
     try {
-      await confirmUserNotification(notificationId, notifications, setNotifications, null);
+      await confirmUserNotification(notificationId, notifications, setNotifications, navigation);
       await loadNotifications(selectedDate);
+      setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
     } catch (error) {
-      setNotificationsError(error.message || 'Ошибка при подтверждении уведомления');
+      log.warn(error.message)
+      if (error.message.includes('У вас нет запасов данного препарата.')) {
+        const notification = notifications.find((notif) => notif.id === notificationId);
+        const medicationTradeName = notification?.medicationTradeName || 'Неизвестный препарат';
+        setErrorModal({
+          visible: true,
+          error: `У вас нет запасов препарата "${medicationTradeName}". Добавить запас?`,
+          secondaryButtonText: 'Добавить',
+          onSecondaryAction: () => {
+            navigation.navigate('StockForm', { medicationTradeName });
+            setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
+          },
+        });
+      } else {
+        setErrorModal({
+          visible: true,
+          error: error.message || 'Ошибка при подтверждении уведомления',
+          secondaryButtonText: null,
+          onSecondaryAction: null,
+        });
+      }
     } finally {
       setIsRetrying(false);
     }
@@ -145,15 +173,13 @@ const HomeScreen = () => {
     if (!isDateInCurrentWeek(newDate)) {
       const weekStart = new Date(newDate);
       if (isLeftSwipe) {
-        // Свайп влево: начало недели, содержащей newDate
         weekStart.setDate(newDate.getDate() - newDate.getDay() + (newDate.getDay() === 0 ? -6 : 1));
       } else {
-        // Свайп вправо: начало недели, содержащей newDate
         weekStart.setDate(newDate.getDate() - newDate.getDay() + (newDate.getDay() === 0 ? -6 : 1));
       }
       log.magenta('[HomeScreen] Calculated weekStart:', weekStart.toISOString());
       handleWeekChange(weekStart);
-      setSelectedDate(newDate); // Сохраняем newDate как selectedDate
+      setSelectedDate(newDate);
       log.magenta('[HomeScreen] Week changed via swipe:', {
         weekStart: weekStart.toISOString(),
         selectedDate: newDate.toISOString(),
@@ -184,7 +210,6 @@ const HomeScreen = () => {
         notifications={notifications}
         isLoadingNotifications={isLoadingNotifications}
         isRefreshing={isRefreshing}
-        notificationsError={notificationsError}
         selectedDate={selectedDate}
         onRefresh={onRefresh}
         onConfirmNotification={handleConfirmNotification}
@@ -192,6 +217,13 @@ const HomeScreen = () => {
         getTodayFormatted={getTodayFormatted}
         onLeftSwipe={handleSwipe}
         onRightSwipe={handleSwipe}
+      />
+      <ErrorModal
+        visible={errorModal.visible}
+        onClose={() => setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null })}
+        error={errorModal.error}
+        secondaryButtonText={errorModal.secondaryButtonText}
+        onSecondaryAction={errorModal.onSecondaryAction}
       />
       <NavBar />
     </SafeAreaView>
