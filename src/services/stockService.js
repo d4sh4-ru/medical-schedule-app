@@ -6,6 +6,7 @@ import {
   deleteStockRequest,
   fetchSingleStockRequest
 } from '../api/stockApi';
+import log from '../utils/coloredLog';
 
 export const getStocks = async (navigation) => {
   try {
@@ -20,15 +21,19 @@ export const getStocks = async (navigation) => {
   }
 };
 
-export const createStock = async (stock, currentStocks, navigation) => {
+export const createStock = async (stock, navigation) => {
   try {
-    const newStock = await createStockRequest(stock, navigation);
-    const updated = [...currentStocks, newStock];
-    await AsyncStorage.setItem('stocks', JSON.stringify(updated));
-    return updated;
+    log.info('[createStock] Sending stock data:', stock);
+    const response = await createStockRequest(stock, navigation);
+    if (response.error) {
+      log.error('[createStock] API error:', response.error);
+      throw new Error(response.error.message || 'Не удалось добавить остаток');
+    }
+    log.info('[createStock] Success:', response.data);
+    return response;
   } catch (err) {
-    console.error('Ошибка добавления остатка:', err);
-    throw new Error('Не удалось добавить остаток');
+    log.error('[createStock] Unexpected error:', err.message, { stack: err.stack });
+    throw err; // Перебрасываем ошибку для обработки в компоненте
   }
 };
 

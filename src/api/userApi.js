@@ -126,3 +126,10 @@ export const deleteDeviceToken = async (token, navigation) => {
     };
   }
 };
+
+export const fetchMe = async (navigation) => {
+  const response = await fetchWithAuth(`${USER_API_URL}`, {
+    method: 'GET',
+  }, navigation);
+  return response.data;
+};

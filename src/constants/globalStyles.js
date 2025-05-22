@@ -68,6 +68,7 @@ const globalStyles = StyleSheet.create({
     errorText: {
       fontSize: 14,
       color: '#d32f2f',
+      textAlign: 'center',
       marginTop: 4,
       marginBottom: 8,
     },
@@ -246,6 +247,13 @@ const globalStyles = StyleSheet.create({
       color: '#fff',
       fontWeight: '700',
     },
+    disabledDayContainer: {
+      // backgroundColor: '#f4f4f4',
+      borderRadius: width / 2,
+    },
+    disabledDayNumber: {
+      color: '#aaa',
+    },
     emptyDay: {
       width: dayWidth,
       minWidth: dayWidth,
@@ -267,6 +275,30 @@ const globalStyles = StyleSheet.create({
     settingsContainer: {
       flex: 1,
       padding: 16,
+    },
+    cardPersonalInfo: {
+      backgroundColor: '#f9f9f9', // Светлый фон
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: '#e0e0e0', // Более мягкая граница
+      shadowColor: '#000', // Добавляем легкую тень для "глубины"
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      elevation: 3, // Для Android
+    },
+    personalNameText: {
+      fontSize: 22, // Увеличиваем размер имени
+      fontWeight: '700', // Делаем имя более жирным
+      color: '#333333', // Темный цвет для лучшей читаемости
+      marginBottom: 4, // Небольшой отступ снизу
+    },
+    personalDetailText: {
+      fontSize: 16,
+      color: '#777', // Мягкий серый для остальных деталей
+      marginBottom: 2,
     },
   },
   scheduleScreen: {
@@ -293,7 +325,7 @@ const globalStyles = StyleSheet.create({
       borderRadius: 12,
       padding: 20,
       width: '90%',
-      maxHeight: '80%',
+      maxHeight: '85%',
       elevation: 5,
     },
     modalTitle: {
@@ -657,6 +689,7 @@ const globalStyles = StyleSheet.create({
       borderBottomColor: '#eee',
     },
     customInput: {
+      // ...this.common.input,
       borderWidth: 1,
       borderColor: '#bbbbbb',
       borderRadius: 8,

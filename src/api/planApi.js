@@ -9,14 +9,6 @@ export const createPlanRequest = async (plan, navigation) => {
   return response.data;
 };
 
-export const createCustomPlanRequest = async (customPlan, navigation) => {
-  const response = await fetchWithAuth(`${config.API_URL}/plan/custom`, {
-    method: 'POST',
-    body: JSON.stringify(customPlan),
-  }, navigation);
-  return response.data;
-};
-
 export const fetchPlansRequest = async (navigation) => {
   const response = await fetchWithAuth(`${config.API_URL}/plan`, {
     method: 'GET',

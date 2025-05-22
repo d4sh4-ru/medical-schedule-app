@@ -19,7 +19,7 @@ export const createPlan = async (plan, navigation) => {
 
 export const createCustomPlan = async (customPlan, navigation) => {
   try {
-    return await createCustomPlanRequest(customPlan, navigation);
+    return await createPlanRequest(customPlan, navigation);
   } catch (err) {
     console.error("Error creating custom plan:", err);
     throw new Error("Не удалось создать кастомный план");

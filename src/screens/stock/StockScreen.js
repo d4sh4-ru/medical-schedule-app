@@ -20,9 +20,9 @@ import styles from '../../constants/globalStyles';
 import Svg, { Path } from 'react-native-svg';
 import { FAB } from 'react-native-elements';
 import NavBar from '../../components/NavBar';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getStocks, modifyStock, removeStock } from '../../services/stockService';
 import Header from '../../components/Header';
+import log from '../../utils/coloredLog';
+import { fetchStocksRequest, updateStockRequest, deleteStockRequest } from '../../api/stockApi';
 
 export default function StockScreen() {
   const { theme } = useTheme();
@@ -31,31 +31,43 @@ export default function StockScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [lastFetchDate, setLastFetchDate] = useState(new Date().toDateString());
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStock, setSelectedStock] = useState(null);
   const [newQuantity, setNewQuantity] = useState('');
   const textInputRef = useRef(null);
+
+  // Показ ошибки с действием
+  const showErrorAlert = ({ message, action }) => {
+    const buttons = [{ text: 'OK', style: 'cancel' }];
+    if (action) {
+      buttons.push({
+        text: action.message,
+        onPress: () => navigation.navigate(action.navigateTo, { fetchStocks }),
+      });
+    }
+
+    Alert.alert('Ошибка', message, buttons);
+  };
 
   // Загрузка остатков
   const fetchStocks = async () => {
     try {
       setIsLoading(true);
       setIsRetrying(true);
-      const data = await getStocks(navigation);
-      const stocksData = Array.isArray(data) ? data : [];
-      setStocks(stocksData);
-      await AsyncStorage.setItem('stocks', JSON.stringify(stocksData));
-      setLastFetchDate(new Date().toDateString());
-      setError(null);
-      console.log('Fetched stocks:', stocksData);
-    } catch (err) {
-      console.error('Error fetching stocks:', err);
-      setError('Не удалось загрузить остатки');
-      const cached = await AsyncStorage.getItem('stocks');
-      if (cached) {
-        setStocks(JSON.parse(cached));
+      const { data, error } = await fetchStocksRequest(navigation);
+      if (error) {
+        setError(error);
+        showErrorAlert(error);
+      } else {
+        setStocks(Array.isArray(data) ? data : []);
+        setError(null);
+        log.cyan('[StockScreen] Fetched stocks:', data);
       }
+    } catch (err) {
+      log.error('[StockScreen] Error fetching stocks:', err.message, { code: err.code });
+      const errorMessage = err.code ? err.message : 'Не удалось загрузить остатки.';
+      setError({ message: errorMessage, action: err.action });
+      showErrorAlert({ message: errorMessage, action: err.action });
     } finally {
       setIsLoading(false);
       setIsRetrying(false);
@@ -106,25 +118,35 @@ export default function StockScreen() {
     }
 
     try {
-      const updatedStocks = await modifyStock(
+      const { data, error } = await updateStockRequest(
         selectedStock.id,
         {
           ...selectedStock,
           remainingQuantity: parseInt(newQuantity),
         },
-        stocks,
         navigation
       );
-      setStocks(updatedStocks);
-      await AsyncStorage.setItem('stocks', JSON.stringify(updatedStocks));
-      setError(null);
-      Keyboard.dismiss();
-      setModalVisible(false);
-      setNewQuantity('');
-      setSelectedStock(null);
+      if (error) {
+        setError(error);
+        showErrorAlert(error);
+      } else {
+        setStocks((prev) =>
+          prev.map((stock) =>
+            stock.id === selectedStock.id ? { ...stock, remainingQuantity: parseInt(newQuantity) } : stock
+          )
+        );
+        setError(null);
+        log.cyan('[StockScreen] Updated stock:', data);
+        Keyboard.dismiss();
+        setModalVisible(false);
+        setNewQuantity('');
+        setSelectedStock(null);
+      }
     } catch (err) {
-      console.error('Error updating stock:', err);
-      setError('Не удалось обновить остаток');
+      log.error('[StockScreen] Error updating stock:', err.message, { code: err.code });
+      const errorMessage = err.code ? err.message : 'Не удалось обновить остаток.';
+      setError({ message: errorMessage, action: err.action });
+      showErrorAlert({ message: errorMessage, action: err.action });
     }
   };
 
@@ -145,13 +167,20 @@ export default function StockScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            const updatedStocks = await removeStock(id, stocks, navigation);
-            setStocks(updatedStocks);
-            await AsyncStorage.setItem('stocks', JSON.stringify(updatedStocks));
-            setError(null);
+            const { data, error } = await deleteStockRequest(id, navigation);
+            if (error) {
+              setError(error);
+              showErrorAlert(error);
+            } else {
+              setStocks((prev) => prev.filter((stock) => stock.id !== id));
+              setError(null);
+              log.cyan('[StockScreen] Deleted stock:', id);
+            }
           } catch (err) {
-            console.error('Error deleting stock:', err);
-            setError('Не удалось удалить остаток');
+            log.error('[StockScreen] Error deleting stock:', err.message, { code: err.code });
+            const errorMessage = err.code ? err.message : 'Не удалось удалить остаток.';
+            setError({ message: errorMessage, action: err.action });
+            showErrorAlert({ message: errorMessage, action: err.action });
           }
         },
       },
@@ -160,16 +189,14 @@ export default function StockScreen() {
 
   return (
     <SafeAreaView style={[styles.stockScreen.container, { backgroundColor: theme.colors.background }]}>
-      <Header
-        title="Запасы"
-      />
+      <Header title="Запасы" />
       {isLoading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
-      ) : error && stocks.length === 0 ? (
+      ) : error ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={[styles.common.errorText, { color: theme.colors.error }]}>{error}</Text>
+          <Text style={[styles.common.errorText, { color: theme.colors.error }]}>{error.message}</Text>
           <TouchableOpacity
             style={[styles.common.button, { backgroundColor: theme.colors.primary }]}
             onPress={fetchStocks}
@@ -282,7 +309,6 @@ export default function StockScreen() {
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </Modal>
-
 
       <FAB
         title="+"

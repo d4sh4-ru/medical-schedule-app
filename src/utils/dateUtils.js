@@ -69,44 +69,69 @@ export const getTodayFormatted = (date = new Date()) => {
 };
 
 /**
- * Генерирует массив объектов, представляющих месяцы указанного года.
- * @param {number} year - Год, для которого генерируются месяцы.
+ * Генерирует массив объектов, представляющих месяцы от текущего до текущего + 6 месяцев.
+ * Каждый день помечается как активный (в пределах от сегодня до сегодня + 6 месяцев) или неактивный.
  * @returns {Array} Массив объектов, представляющих месяцы.
  */
-export function generateMonths(year) {
-    const months = [];
-    for (let month = 0; month < 12; month++) {
-      const firstDay = new Date(year, month, 1);
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const startingDay = firstDay.getDay(); // 0 (вс) - 6 (сб)
-      const days = [];
-  
-      // Пустые дни до начала месяца (понедельник - первый день недели)
-      const offset = startingDay === 0 ? 6 : startingDay - 1;
-      for (let i = 0; i < offset; i++) {
-        days.push(null);
-      }
-  
-      // Дни месяца
-      for (let day = 1; day <= daysInMonth; day++) {
-        days.push(new Date(year, month, day));
-      }
-  
-      // Заполнить до конца последней недели
-      const totalDays = offset + daysInMonth;
-      const rowsNeeded = Math.ceil(totalDays / 7); // 5 или 6 строк
-      const targetLength = rowsNeeded * 7; // 35 или 42 ячейки
-      while (days.length < targetLength) {
-        days.push(null);
-      }
-  
-      months.push({
-        month: firstDay.toLocaleString('ru-RU', { month: 'long', year: 'numeric' }),
-        days,
-      });
-    }
-    return months;
+export function generateMonths() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Сбрасываем время для точных сравнений
+  const endDate = new Date(today);
+  endDate.setMonth(today.getMonth() + 6); // Сегодня + 6 месяцев
+  endDate.setHours(0, 0, 0, 0);
+
+  const months = [];
+  const startYear = today.getFullYear();
+  const startMonth = today.getMonth();
+  const endYear = endDate.getFullYear();
+  const endMonth = endDate.getMonth();
+
+  // Определяем количество месяцев для генерации
+  let monthCount = 0;
+  for (let year = startYear; year <= endYear; year++) {
+    const start = year === startYear ? startMonth : 0;
+    const end = year === endYear ? endMonth + 1 : 12;
+    monthCount += end - start;
   }
+
+  for (let i = 0; i < monthCount; i++) {
+    const month = (startMonth + i) % 12;
+    const year = startYear + Math.floor((startMonth + i) / 12);
+    const firstDay = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const startingDay = firstDay.getDay(); // 0 (вс) - 6 (сб)
+    const days = [];
+
+    // Пустые дни до начала месяца (понедельник - первый день недели)
+    const offset = startingDay === 0 ? 6 : startingDay - 1;
+    for (let j = 0; j < offset; j++) {
+      days.push(null);
+    }
+
+    // Дни месяца
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(year, month, day);
+      const isActive =
+        currentDate >= today && currentDate <= endDate;
+      days.push({ date: currentDate, isActive });
+    }
+
+    // Заполнить до конца последней недели
+    const totalDays = offset + daysInMonth;
+    const rowsNeeded = Math.ceil(totalDays / 7); // 5 или 6 строк
+    const targetLength = rowsNeeded * 7; // 35 или 42 ячейки
+    while (days.length < targetLength) {
+      days.push(null);
+    }
+
+    months.push({
+      month: firstDay.toLocaleString('ru-RU', { month: 'long', year: 'numeric' }),
+      days,
+    });
+  }
+
+  return months;
+}
 
   // Форматирование времени
  export const formatTime = (time) => {

@@ -1,48 +1,51 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../../constants/globalStyles';
 import AutocompleteInput from '../../components/AutocompleteInput';
 import { createStock } from '../../services/stockService';
 import { searchMedications } from '../../api/medicationApi';
 import Header from '../../components/Header';
+import ErrorModal from '../../components/ErrorModal';
 
 export default function StockFormScreen({ route }) {
   const navigation = useNavigation();
   const [medicationTradeName, setMedicationTradeName] = useState('');
   const [remainingQuantity, setRemainingQuantity] = useState('');
+  const [errorModal, setErrorModal] = useState({ visible: false, error: null });
   const currentDate = new Date().toISOString();
   const { fetchStocks } = route.params || {};
 
   // Создание остатка
   const handleSubmit = async () => {
     if (!medicationTradeName || !remainingQuantity) {
-      Alert.alert('Ошибка', 'Заполните все поля');
+      setErrorModal({ visible: true, error: 'Заполните все поля' });
       return;
     }
     if (isNaN(remainingQuantity) || parseInt(remainingQuantity) < 0) {
-      Alert.alert('Ошибка', 'Введите корректное количество таблеток');
+      setErrorModal({ visible: true, error: 'Введите корректное количество таблеток' });
       return;
     }
 
     try {
-      await createStock(
-        {
-          medicationTradeName,
-          requestDate: currentDate,
-          restockDate: currentDate,
-          remainingQuantity: parseInt(remainingQuantity),
-        },
-        navigation
-      );
-      if (fetchStocks) {
-        await fetchStocks();
+      const stockData = {
+        medicationTradeName,
+        requestDate: currentDate,
+        restockDate: currentDate,
+        remainingQuantity: parseInt(remainingQuantity),
+      };
+      const response = await createStock(stockData, navigation);
+      if (response.error) {
+        throw new Error(response.error.message || 'Не удалось добавить остаток');
       }
       navigation.goBack();
-      console.log('Stock created:', { medicationTradeName, remainingQuantity });
+      if (fetchStocks) {
+        await fetchStocks(); // Обновляем список запасов
+      }
+      console.log('Stock created:', stockData);
     } catch (err) {
       console.error('Error adding stock:', err);
-      Alert.alert('Ошибка', 'Не удалось добавить остаток');
+      setErrorModal({ visible: true, error: err.message || 'Не удалось добавить остаток' });
     }
   };
 
@@ -85,6 +88,11 @@ export default function StockFormScreen({ route }) {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+      <ErrorModal
+        visible={errorModal.visible}
+        onClose={() => setErrorModal({ ...errorModal, visible: false })}
+        error={errorModal.error}
+      />
     </SafeAreaView>
   );
 }
