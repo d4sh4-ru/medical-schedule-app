@@ -6,8 +6,9 @@ import styles from '../../constants/globalStyles';
 import { FAB } from 'react-native-elements';
 import NavBar from '../../components/NavBar';
 import Header from '../../components/Header';
+import ScheduleModal from '../../components/ScheduleModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getPlans } from '../../services/planService';
+import { getPlans, removePlan } from '../../services/planService';
 import { formatDate } from '../../utils/dateUtils';
 
 export default function ScheduleListScreen() {
@@ -17,6 +18,16 @@ export default function ScheduleListScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
+  // Открытие модального окна
+  const openModal = (planId) => {
+    const plan = plans.find((p) => p.id === planId);
+    setSelectedPlan(plan);
+    setModalVisible(true);
+    console.log('[ScheduleListScreen] Opened modal for plan:', planId);
+  };
 
   // Загрузка планов
   const fetchPlans = async () => {
@@ -27,17 +38,36 @@ export default function ScheduleListScreen() {
       setPlans(plansData);
       await AsyncStorage.setItem('plans', JSON.stringify(plansData));
       setError(null);
-      console.log('Fetched plans:', plansData);
+      console.log('[ScheduleListScreen] Fetched plans:', plansData);
     } catch (err) {
-      console.error('Error fetching plans:', err);
+      console.error('[ScheduleListScreen] Error fetching plans:', err);
       setError('Не удалось загрузить планы');
       const cached = await AsyncStorage.getItem('plans');
       if (cached) {
-        const cachedData = JSON.parse(cached);
-        setPlans(Array.isArray(cachedData) ? cachedData : []);
+        try {
+          const cachedData = JSON.parse(cached);
+          setPlans(Array.isArray(cachedData) ? cachedData : []);
+        } catch (parseErr) {
+          console.error('[ScheduleListScreen] Error parsing cached plans:', parseErr);
+        }
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Удаление плана
+  const handleDelete = async (planId) => {
+    try {
+      await removePlan(planId, navigation);
+      setPlans((prev) => prev.filter((plan) => plan.id !== planId));
+      await AsyncStorage.setItem('plans', JSON.stringify(plans.filter((plan) => plan.id !== planId)));
+      setModalVisible(false);
+      setSelectedPlan(null);
+      console.log('[ScheduleListScreen] Deleted plan:', planId);
+    } catch (err) {
+      console.error('[ScheduleListScreen] Error deleting plan:', err);
+      setError('Не удалось удалить план');
     }
   };
 
@@ -65,7 +95,7 @@ export default function ScheduleListScreen() {
   const renderPlan = ({ item }) => (
     <TouchableOpacity
       style={[styles.common.card, { backgroundColor: theme.colors.cardBackground || '#f9f9f9' }]}
-      onPress={() => navigation.navigate('ScheduleForm', { planId: item.id })}
+      onPress={() => openModal(item.id)}
       activeOpacity={0.7}
     >
       <View>
@@ -143,6 +173,23 @@ export default function ScheduleListScreen() {
           bottom: 80,
           right: 10,
         }}
+      />
+      <ScheduleModal
+        visible={modalVisible}
+        onClose={() => {
+          setModalVisible(false);
+          setSelectedPlan(null);
+        }}
+        scheduleDetails={selectedPlan}
+        onEdit={() => {
+          setModalVisible(false);
+          navigation.navigate('ScheduleForm', {
+            planId: selectedPlan?.id,
+          });
+          setSelectedPlan(null);
+        }}
+        onDelete={() => handleDelete(selectedPlan?.id)}
+        theme={theme}
       />
       <NavBar />
     </SafeAreaView>

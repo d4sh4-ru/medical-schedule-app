@@ -5,6 +5,7 @@ import {
   fetchMonthNotificationDays,
   confirmNotification,
 } from '../api/notificationApi';
+import { fetchStocksRequest } from '../api/stockApi';
 import log from '../utils/coloredLog';
 
 export const getNotificationsForToday = async (navigation) => {
@@ -56,6 +57,7 @@ export const getNotificationDaysForMonth = async (month, year, navigation) => {
 
 export const confirmUserNotification = async (id, notifications, setNotifications, navigation) => {
   try {
+    // Подтверждение уведомления
     await confirmNotification(id, navigation);
     const updatedNotifications = notifications.map((notif) =>
       notif.id === id
@@ -65,6 +67,34 @@ export const confirmUserNotification = async (id, notifications, setNotification
     setNotifications(updatedNotifications);
     const today = new Date().toISOString().split('T')[0];
     await AsyncStorage.setItem(`notifications_${today}`, JSON.stringify(updatedNotifications));
+    log.cyan('[confirmUserNotification] Notification confirmed:', { id });
+
+    // Загрузка остатков
+    const notification = notifications.find((notif) => notif.id === id);
+    const medicationTradeName = notification?.medicationTradeName || 'Неизвестный препарат';
+    const stockId = notification?.stockId;
+
+    const { data: stocks, error: stockError } = await fetchStocksRequest(navigation);
+    if (stockError) {
+      log.error('[confirmUserNotification] Error fetching stocks:', stockError.message);
+      throw new Error('Не удалось загрузить остатки препаратов.');
+    }
+
+    // Поиск остатка
+    let stock;
+    if (stockId) {
+      stock = stocks.find((s) => s.id === stockId);
+    } else {
+      stock = stocks.find((s) => s.medicationTradeName === medicationTradeName);
+    }
+
+    if (stock && stock.remainingQuantity < 3) {
+      const message = `У вас заканчивается ${medicationTradeName}, рекомендуем в скором времени приобрести.`;
+      log.warn('[confirmUserNotification] Low stock warning:', { medicationTradeName, remainingQuantity: stock.remainingQuantity });
+      throw new Error(message);
+    }
+
+    log.cyan('[confirmUserNotification] Stock check passed:', { medicationTradeName, remainingQuantity: stock?.remainingQuantity });
   } catch (err) {
     log.warn('[confirmUserNotification] Error:', err.message, { code: err.code, stack: err.stack });
     throw err;

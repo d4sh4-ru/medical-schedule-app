@@ -145,7 +145,7 @@ export default function ScheduleFormScreen() {
           navigation
         );
         Alert.alert("Успех", result.message);
-        navigation.navigate("ScheduleScreen");
+        navigation.navigate("Schedule");
       } catch (err) {
         Alert.alert("Ошибка", err.message);
       }

@@ -90,10 +90,10 @@ const HomeScreen = () => {
       const cached = await AsyncStorage.getItem(cacheKey);
       if (cached) {
         try {
-        const cachedData = JSON.parse(cached);
-        const notificationsData = Array.isArray(cachedData) ? cachedData : [];
-        setNotifications(notificationsData);
-        log.magenta('[HomeScreen] Set cached notifications:', notificationsData);
+          const cachedData = JSON.parse(cached);
+          const notificationsData = Array.isArray(cachedData) ? cachedData : [];
+          setNotifications(notificationsData);
+          log.magenta('[HomeScreen] Set cached notifications:', notificationsData);
         } catch (parseErr) {
           log.error('[HomeScreen] Error parsing cached data:', parseErr.message);
         }
@@ -119,16 +119,26 @@ const HomeScreen = () => {
       await loadNotifications(selectedDate);
       setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
     } catch (error) {
-      log.warn(error.message)
+      const notification = notifications.find((notif) => notif.id === notificationId);
+      const medicationTradeName = notification?.medicationTradeName || 'Неизвестный препарат';
+      const stockId = notification?.stockId; // Предполагается, что уведомление может содержать stockId
       if (error.message.includes('У вас нет запасов данного препарата.')) {
-        const notification = notifications.find((notif) => notif.id === notificationId);
-        const medicationTradeName = notification?.medicationTradeName || 'Неизвестный препарат';
         setErrorModal({
           visible: true,
           error: `У вас нет запасов препарата "${medicationTradeName}". Добавить запас?`,
           secondaryButtonText: 'Добавить',
           onSecondaryAction: () => {
             navigation.navigate('StockForm', { medicationTradeName });
+            setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
+          },
+        });
+      } else if (error.message.includes('Недостаточное количество препарата.')) {
+        setErrorModal({
+          visible: true,
+          error: `Недостаточное количество препарата "${medicationTradeName}". Увеличить запас?`,
+          secondaryButtonText: 'Увеличить',
+          onSecondaryAction: () => {
+            navigation.navigate('Stock', { medicationTradeName, stockId, editStock: true });
             setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
           },
         });
@@ -192,13 +202,13 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.homeScreen.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <Header
         title={getTodayFormatted(selectedDate)}
         leftIconName="settings-outline"
         onLeftPress={() => navigation.navigate('Settings')}
-        rightIconName="calendar-outline"
-        onRightPress={() => navigation.navigate('Calendar')}
+        // rightIconName="calendar-outline"
+        // onRightPress={() => navigation.navigate('Calendar')}
       />
       <WeekCalendar
         weeks={weeks}

@@ -73,6 +73,7 @@ const ErrorModal = ({
               <View
                 style={[
                   styles.scheduleScreen.modalButtonContainer,
+                  {justifyContent: secondaryButtonText ? undefined : "center"}
                 ]}
               >
                 {secondaryButtonText && onSecondaryAction && (
@@ -103,7 +104,7 @@ const ErrorModal = ({
                     styles.scheduleScreen.modalButton,
                     {
                       backgroundColor: "#777",
-                      flex: secondaryButtonText ? 1 : undefined, // Если есть вторая кнопка, делим пространство
+                      flex: 1, // Если есть вторая кнопка, делим пространство
                       marginLeft: secondaryButtonText ? 10 : 0, // Отступ только если есть вторая кнопка
                     },
                   ]}

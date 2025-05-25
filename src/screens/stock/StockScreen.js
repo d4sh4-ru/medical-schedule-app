@@ -14,7 +14,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 import styles from '../../constants/globalStyles';
 import Svg, { Path } from 'react-native-svg';
@@ -27,6 +27,7 @@ import { fetchStocksRequest, updateStockRequest, deleteStockRequest } from '../.
 export default function StockScreen() {
   const { theme } = useTheme();
   const navigation = useNavigation();
+  let route = useRoute();
   const [stocks, setStocks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,6 +36,28 @@ export default function StockScreen() {
   const [selectedStock, setSelectedStock] = useState(null);
   const [newQuantity, setNewQuantity] = useState('');
   const textInputRef = useRef(null);
+
+  // Проверка параметров для автоматического редактирования
+  useEffect(() => {
+    const { stockId, medicationTradeName, editStock } = route.params || {};
+    if (editStock && stocks.length > 0) {
+      let stock;
+      if (stockId) {
+        stock = stocks.find((s) => s.id === stockId);
+      } else if (medicationTradeName) {
+        stock = stocks.find((s) => s.medicationTradeName === medicationTradeName);
+      }
+      if (stock) {
+        setSelectedStock(stock);
+        setNewQuantity(stock.remainingQuantity.toString());
+        setModalVisible(true);
+      } else {
+        Alert.alert('Ошибка', `Остаток для "${medicationTradeName}" не найден.`, [
+          { text: 'OK', style: 'cancel' },
+        ]);
+      }
+    }
+  }, [stocks, route.params]);
 
   // Показ ошибки с действием
   const showErrorAlert = ({ message, action }) => {
@@ -141,6 +164,7 @@ export default function StockScreen() {
         setModalVisible(false);
         setNewQuantity('');
         setSelectedStock(null);
+        navigation.setParams({ editStock: false });
       }
     } catch (err) {
       log.error('[StockScreen] Error updating stock:', err.message, { code: err.code });
