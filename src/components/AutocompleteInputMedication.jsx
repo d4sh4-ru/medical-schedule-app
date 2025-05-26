@@ -135,7 +135,7 @@ const AutocompleteInput = ({
         const data = await response.json();
         setSuggestions(data.names || []);
       } catch (err) {
-        console.error('Error fetching suggestions:', err);
+        console.warn('Error fetching suggestions:', err);
         setSuggestions([]);
       } finally {
         setIsFetchingSuggestions(false);

@@ -6,6 +6,13 @@ import styles from '../constants/globalStyles';
 const DateRangePicker = ({ dateRange, markedDates, onSelect, formatDateRange }) => {
   const [showPicker, setShowPicker] = useState(false);
 
+  // Определяем начальную дату для календаря.
+  // Используем toISOString() для обеспечения корректного формата "YYYY-MM-DD"
+  // и убираем часть с временем.
+  const initialCalendarDate = dateRange.startDate
+    ? dateRange.startDate.toISOString().split('T')[0]
+    : new Date().toISOString().split('T')[0];
+
   return (
     <View>
       <TouchableOpacity
@@ -23,11 +30,12 @@ const DateRangePicker = ({ dateRange, markedDates, onSelect, formatDateRange }) 
         <View style={styles.scheduleFormScreen.modalContainer}>
           <View style={styles.scheduleFormScreen.modalContent}>
             <Calendar
-              current={dateRange.startDate?.toISOString().split('T')[0]}
+              // Устанавливаем текущий месяц, который будет показан в календаре
+              current={initialCalendarDate}
               markingType={'period'}
               markedDates={markedDates}
               onDayPress={onSelect}
-              firstDay={1}
+              firstDay={1} // Понедельник как первый день недели
               theme={{
                 calendarBackground: '#fff',
                 textSectionTitleColor: '#000',

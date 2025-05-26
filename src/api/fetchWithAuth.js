@@ -27,7 +27,7 @@ export const fetchWithAuth = async (url, options = {}, navigation = null) => {
 
     return response;
   } catch (err) {
-    console.error('Fetch error:', {
+    console.warn('Fetch error:', {
       error: err.message,
       url,
       options,

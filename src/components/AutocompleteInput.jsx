@@ -60,7 +60,7 @@ const AutocompleteInput = ({
 
         setSuggestions(extracted);
       } catch (err) {
-        console.error('[Autocomplete] Error fetching suggestions:', err);
+        console.warn('[Autocomplete] Error fetching suggestions:', err);
         setSuggestions([]);
       } finally {
         setIsFetchingSuggestions(false);

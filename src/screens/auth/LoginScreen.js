@@ -76,7 +76,7 @@ export default function LoginScreen({ navigation }) {
       await loginUser({ email, password });
       navigation.replace('Home');
     } catch (error) {
-      console.error('Login error:', error);
+      console.warn('Login error:', error);
       const code = error?.response?.data?.code || error?.code;
       const defaultMessage = 'Произошла ошибка. Попробуйте ещё раз.';
       const message = ERROR_MESSAGES[code] || defaultMessage;

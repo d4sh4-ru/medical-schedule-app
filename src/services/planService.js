@@ -12,7 +12,7 @@ export const createPlan = async (plan, navigation) => {
   try {
     return await createPlanRequest(plan, navigation);
   } catch (err) {
-    console.error("Error creating plan:", err);
+    console.warn("Error creating plan:", err);
     throw new Error("Не удалось создать план");
   }
 };
@@ -21,7 +21,7 @@ export const createCustomPlan = async (customPlan, navigation) => {
   try {
     return await createPlanRequest(customPlan, navigation);
   } catch (err) {
-    console.error("Error creating custom plan:", err);
+    console.warn("Error creating custom plan:", err);
     throw new Error("Не удалось создать кастомный план");
   }
 };
@@ -30,7 +30,7 @@ export const getPlans = async (navigation) => {
   try {
     return await fetchPlansRequest(navigation);
   } catch (err) {
-    console.error("Error fetching plans:", err);
+    console.warn("Error fetching plans:", err);
     throw new Error("Не удалось загрузить планы");
   }
 };
@@ -39,7 +39,7 @@ export const getPlan = async (id, navigation) => {
   try {
     return await fetchPlanRequest(id, navigation);
   } catch (err) {
-    console.error("Error fetching plan:", err);
+    console.warn("Error fetching plan:", err);
     throw new Error("Не удалось загрузить план");
   }
 };
@@ -48,7 +48,7 @@ export const removePlan = async (id, navigation) => {
   try {
     await deletePlanRequest(id, navigation);
   } catch (err) {
-    console.error("Error deleting plan:", err);
+    console.warn("Error deleting plan:", err);
     throw new Error("Не удалось удалить план");
   }
 };
@@ -57,7 +57,7 @@ export const updatePlan = async (id, updatedPlan, navigation) => {
   try {
     return await updatePlanRequest(id, updatedPlan, navigation);
   } catch (err) {
-    console.error("Error updating plan:", err);
+    console.warn("Error updating plan:", err);
     throw new Error("Не удалось обновить план");
   }
 };
@@ -130,7 +130,7 @@ export const newUniformPlan = async (
       message: isEditing ? "План успешно обновлён" : "План успешно создан",
     };
   } catch (err) {
-    console.error("Error in newUniformPlan:", err);
+    console.warn("Error in newUniformPlan:", err);
     throw new Error(err.message || "Не удалось сохранить план");
   }
 };

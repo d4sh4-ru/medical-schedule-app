@@ -19,7 +19,7 @@ const HomeScreen = () => {
   const [weeks, setWeeks] = useState(generateWeeks(today));
   const [notifications, setNotifications] = useState([]);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
-  const [errorModal, setErrorModal] = useState({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
+  const [errorModal, setErrorModal] = useState({ visible: false, title: null, error: null, secondaryButtonText: null, onSecondaryAction: null });
   const [isRetrying, setIsRetrying] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -74,7 +74,7 @@ const HomeScreen = () => {
       }
       setNotifications(notificationsData);
       log.magenta('[HomeScreen] Set notifications:', notificationsData);
-      setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
+      setErrorModal({ visible: false, title:'Ошибка', error: null, secondaryButtonText: null, onSecondaryAction: null });
 
       const cacheKey = `notifications_${date.toISOString().split('T')[0]}`;
       await AsyncStorage.setItem(cacheKey, JSON.stringify(notificationsData));
@@ -82,6 +82,7 @@ const HomeScreen = () => {
       log.error('[HomeScreen] Error in loadNotifications:', err.message, { stack: err.stack });
       setErrorModal({
         visible: true,
+        title:'Ошибка',
         error: err.message || 'Не удалось загрузить уведомления. Проверьте подключение к интернету.',
         secondaryButtonText: null,
         onSecondaryAction: null,
@@ -117,7 +118,7 @@ const HomeScreen = () => {
     try {
       await confirmUserNotification(notificationId, notifications, setNotifications, navigation);
       await loadNotifications(selectedDate);
-      setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
+      setErrorModal({ visible: false, title:'Ошибка', error: null, secondaryButtonText: null, onSecondaryAction: null });
     } catch (error) {
       const notification = notifications.find((notif) => notif.id === notificationId);
       const medicationTradeName = notification?.medicationTradeName || 'Неизвестный препарат';
@@ -125,6 +126,7 @@ const HomeScreen = () => {
       if (error.message.includes('У вас нет запасов данного препарата.')) {
         setErrorModal({
           visible: true,
+          title:'Ошибка',
           error: `У вас нет запасов препарата "${medicationTradeName}". Добавить запас?`,
           secondaryButtonText: 'Добавить',
           onSecondaryAction: () => {
@@ -135,12 +137,19 @@ const HomeScreen = () => {
       } else if (error.message.includes('Недостаточное количество препарата.')) {
         setErrorModal({
           visible: true,
+          title:'Ошибка',
           error: `Недостаточное количество препарата "${medicationTradeName}". Увеличить запас?`,
           secondaryButtonText: 'Увеличить',
           onSecondaryAction: () => {
             navigation.navigate('Stock', { medicationTradeName, stockId, editStock: true });
             setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null });
           },
+        });
+      } else if (error.message.includes('У вас заканчивается')) {
+        setErrorModal({
+          visible: true,
+          title:'Предупреждение',
+          error: error.message
         });
       } else {
         setErrorModal({
@@ -231,6 +240,7 @@ const HomeScreen = () => {
       <ErrorModal
         visible={errorModal.visible}
         onClose={() => setErrorModal({ visible: false, error: null, secondaryButtonText: null, onSecondaryAction: null })}
+        title={errorModal.title}
         error={errorModal.error}
         secondaryButtonText={errorModal.secondaryButtonText}
         onSecondaryAction={errorModal.onSecondaryAction}

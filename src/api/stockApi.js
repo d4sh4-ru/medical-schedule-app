@@ -3,7 +3,7 @@ import log from '../utils/coloredLog';
 
 export const fetchStocksRequest = async (navigation) => {
   try {
-    const response = await axios.get('/plan/restock', { navigation });
+    const response = await axios.get('/plan/restock'); 
     return { data: response.data, error: null };
   } catch (err) {
     log.error('[fetchStocksRequest] Error:', err.message, { code: err.code });

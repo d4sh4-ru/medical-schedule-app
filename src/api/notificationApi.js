@@ -8,7 +8,7 @@ export const fetchTodayNotifications = async (navigation) => {
     const response = await axios.get(`${NOTIFICATION_API_URL}/today`, { navigation });
     return response.data;
   } catch (err) {
-    log.error('[fetchTodayNotifications] Error:', err.message, {
+    log.warn('[fetchTodayNotifications] Error:', err.message, {
       code: err.code,
       httpStatus: err.httpStatus,
       response: err.response?.data,
@@ -22,7 +22,7 @@ export const fetchDayNotifications = async (day, month, year, navigation) => {
     const response = await axios.get(`${NOTIFICATION_API_URL}/day/${day}/${month}/${year}`, { navigation });
     return response.data;
   } catch (err) {
-    log.error('[fetchDayNotifications] Error:', err.message, {
+    log.warn('[fetchDayNotifications] Error:', err.message, {
       code: err.code,
       httpStatus: err.httpStatus,
       response: err.response?.data,
@@ -36,7 +36,7 @@ export const fetchMonthNotificationDays = async (month, year, navigation) => {
     const response = await axios.get(`${NOTIFICATION_API_URL}/month/${month}/${year}`, { navigation });
     return response.data;
   } catch (err) {
-    log.error('[fetchMonthNotificationDays] Error:', err.message, {
+    log.warn('[fetchMonthNotificationDays] Error:', err.message, {
       code: err.code,
       httpStatus: err.httpStatus,
       response: err.response?.data,
@@ -48,7 +48,7 @@ export const fetchMonthNotificationDays = async (month, year, navigation) => {
 export const confirmNotification = async (id, navigation) => {
   try {
     const response = await axios.patch(`${NOTIFICATION_API_URL}/${id}/confirm`, {}, { navigation });
-    return response.data;
+    return response;
   } catch (err) {
     log.warn('[confirmNotification] Error:', err.message, {
       code: err.code,

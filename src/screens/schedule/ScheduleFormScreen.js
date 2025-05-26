@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { SafeAreaView, Modal, View, Text, TouchableOpacity, Alert } from "react-native";
+import { SafeAreaView, Modal, View, Text, TouchableOpacity } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Header from "../../components/Header";
@@ -8,9 +8,11 @@ import globalStyles from "../../constants/globalStyles";
 import UniformModeForm from "../../components/UniformModeForm";
 import CustomModeForm from "../../components/CustomModeForm";
 import ConfirmButton from "../../components/ConfirmButton";
+import Toast from "../../components/Toast"; // Импорт компонента Toast
 import { searchMedications } from "../../api/medicationApi";
 import { newUniformPlan, createCustomPlan } from "../../services/planService";
 
+// Компонент экрана формы расписания
 export default function ScheduleFormScreen() {
   const styles = globalStyles;
   const route = useRoute();
@@ -22,10 +24,12 @@ export default function ScheduleFormScreen() {
   const [showModeChangeAlert, setShowModeChangeAlert] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [medicationName, setMedicationName] = useState("");
+  const [toast, setToast] = useState(null); // Состояние для тоста
 
   const uniformFormRef = useRef(null);
   const customFormRef = useRef(null);
 
+  // Проверка наличия несохраненных изменений в форме
   const hasFormChanges = () => {
     if (mode === "uniform") {
       const formData = uniformFormRef.current?.getFormData();
@@ -46,6 +50,7 @@ export default function ScheduleFormScreen() {
     }
   };
 
+  // Обработчик смены режима
   const handleModeChange = (newMode) => {
     const targetMode = newMode === 0 ? "uniform" : "custom";
     if (hasUnsavedChanges && hasFormChanges()) {
@@ -56,6 +61,7 @@ export default function ScheduleFormScreen() {
     setHasUnsavedChanges(false);
   };
 
+  // Подтверждение смены режима
   const confirmModeChange = () => {
     setMode(showModeChangeAlert ? "custom" : "uniform");
     setShowModeChangeAlert(false);
@@ -63,44 +69,52 @@ export default function ScheduleFormScreen() {
     // Не сбрасываем medicationName, чтобы сохранить название лекарства
   };
 
+  // Закрытие формы с проверкой несохраненных изменений
   const handleClose = () => {
     if (hasUnsavedChanges && hasFormChanges()) {
-      Alert.alert(
-        "Несохраненные изменения",
-        "Вы хотите закрыть экран? Все несохраненные данные будут потеряны.",
-        [
-          { text: "Отмена", style: "cancel" },
+      setToast({
+        message: "Есть несохраненные изменения. Закрыть без сохранения?",
+        type: "error",
+        buttons: [
+          { text: "Отмена", onPress: () => setToast(null) },
           {
             text: "Закрыть",
-            style: "destructive",
-            onPress: () => navigation.goBack(),
+            onPress: () => {
+              setToast(null);
+              navigation.goBack();
+            },
           },
-        ]
-      );
+        ],
+      });
     } else {
       navigation.goBack();
     }
   };
 
+  // Обработка отправки формы
   const handleSubmit = async () => {
     if (!medicationName.trim()) {
-      Alert.alert("Ошибка", "Введите название препарата");
+      setToast({ message: "Введите название препарата", type: "error" });
+      setTimeout(() => setToast(null), 3500);
       return;
     }
 
     if (mode === "uniform") {
       const formData = uniformFormRef.current?.getFormData();
       if (!formData) {
-        Alert.alert("Ошибка", "Заполните все поля формы");
+        setToast({ message: "Заполните все поля формы", type: "error" });
+        setTimeout(() => setToast(null), 3500);
         return;
       }
       const { tabletCount, tabletDosage, interval, times, dateRange } = formData;
       if (!dateRange.startDate) {
-        Alert.alert("Ошибка", "Выберите дату начала");
+        setToast({ message: "Выберите дату начала", type: "error" });
+        setTimeout(() => setToast(null), 3500);
         return;
       }
       if (!dateRange.endDate) {
-        Alert.alert("Ошибка", "Выберите дату окончания");
+        setToast({ message: "Выберите дату окончания", type: "error" });
+        setTimeout(() => setToast(null), 3500);
         return;
       }
       if (
@@ -108,7 +122,8 @@ export default function ScheduleFormScreen() {
         isNaN(parseInt(tabletCount)) ||
         parseInt(tabletCount) <= 0
       ) {
-        Alert.alert("Ошибка", "Введите корректное количество таблеток");
+        setToast({ message: "Введите корректное количество таблеток", type: "error" });
+        setTimeout(() => setToast(null), 3500);
         return;
       }
       if (
@@ -116,7 +131,8 @@ export default function ScheduleFormScreen() {
         isNaN(parseInt(tabletDosage)) ||
         parseInt(tabletDosage) <= 0
       ) {
-        Alert.alert("Ошибка", "Введите корректную дозировку");
+        setToast({ message: "Введите корректную дозировку", type: "error" });
+        setTimeout(() => setToast(null), 3500);
         return;
       }
       if (
@@ -124,12 +140,13 @@ export default function ScheduleFormScreen() {
         isNaN(parseInt(interval)) ||
         parseInt(interval) <= 0
       ) {
-        Alert.alert("Ошибка", "Введите корректный интервал");
+        setToast({ message: "Введите корректный интервал", type: "error" });
+        setTimeout(() => setToast(null), 3500);
         return;
       }
 
       try {
-        const result = await newUniformPlan(
+        await newUniformPlan(
           {
             medicationTradeName: medicationName,
             type: "uniform",
@@ -144,20 +161,21 @@ export default function ScheduleFormScreen() {
           scheduleId,
           navigation
         );
-        Alert.alert("Успех", result.message);
-        navigation.navigate("Schedule");
+        navigation.navigate("Schedule", { showToast: { message: "Приём успешно добавлен", type: "success" } });
       } catch (err) {
-        Alert.alert("Ошибка", err.message);
+        setToast({ message: err.message, type: "error" });
+        setTimeout(() => setToast(null), 3500);
       }
     } else {
       const formData = customFormRef.current?.getFormData();
       if (!formData || formData.length === 0) {
-        Alert.alert("Ошибка", "Добавьте хотя бы одно напоминание");
+        setToast({ message: "Добавьте хотя бы одно напоминание", type: "error" });
+        setTimeout(() => setToast(null), 3500);
         return;
       }
 
       try {
-        const result = await createCustomPlan(
+        await createCustomPlan(
           {
             medicationTradeName: medicationName,
             type: "custom",
@@ -169,10 +187,10 @@ export default function ScheduleFormScreen() {
           },
           navigation
         );
-        Alert.alert("Успех", result.message);
-        navigation.navigate("Schedule");
+        navigation.navigate("Schedule", { showToast: { message: "Приём успешно добавлен", type: "success" } });
       } catch (err) {
-        Alert.alert("Ошибка", err.message);
+        setToast({ message: err.message, type: "error" });
+        setTimeout(() => setToast(null), 3500);
       }
     }
   };
@@ -188,7 +206,7 @@ export default function ScheduleFormScreen() {
         <Text style={styles.scheduleFormScreen.label}>Название препарата</Text>
         <AutocompleteInput
           value={medicationName}
-          onChangeText={setMedicationName} // Убрали setHasUnsavedChanges
+          onChangeText={setMedicationName}
           placeholder="Название препарата"
           navigation={navigation}
           style={styles.common.input}
@@ -251,6 +269,15 @@ export default function ScheduleFormScreen() {
             </View>
           </View>
         </Modal>
+      )}
+      {/* Рендеринг тоста */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onDismiss={() => setToast(null)}
+        />
       )}
     </SafeAreaView>
   );

@@ -7,10 +7,12 @@ import { FAB } from 'react-native-elements';
 import NavBar from '../../components/NavBar';
 import Header from '../../components/Header';
 import ScheduleModal from '../../components/ScheduleModal';
+import Toast from '../../components/Toast'; // Импорт компонента Toast
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPlans, removePlan } from '../../services/planService';
 import { formatDate } from '../../utils/dateUtils';
 
+// Компонент экрана списка расписаний
 export default function ScheduleListScreen() {
   const { theme } = useTheme();
   const navigation = useNavigation();
@@ -20,13 +22,14 @@ export default function ScheduleListScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [toast, setToast] = useState(null); // Состояние для тоста
 
   // Открытие модального окна
   const openModal = (planId) => {
     const plan = plans.find((p) => p.id === planId);
     setSelectedPlan(plan);
     setModalVisible(true);
-    console.log('[ScheduleListScreen] Opened modal for plan:', planId);
+    console.log('[ScheduleListScreen] Открыто модальное окно для плана:', planId);
   };
 
   // Загрузка планов
@@ -38,9 +41,9 @@ export default function ScheduleListScreen() {
       setPlans(plansData);
       await AsyncStorage.setItem('plans', JSON.stringify(plansData));
       setError(null);
-      console.log('[ScheduleListScreen] Fetched plans:', plansData);
+      console.log('[ScheduleListScreen] Загружены планы:', plansData);
     } catch (err) {
-      console.error('[ScheduleListScreen] Error fetching plans:', err);
+      console.warn('[ScheduleListScreen] Ошибка загрузки планов:', err);
       setError('Не удалось загрузить планы');
       const cached = await AsyncStorage.getItem('plans');
       if (cached) {
@@ -48,7 +51,7 @@ export default function ScheduleListScreen() {
           const cachedData = JSON.parse(cached);
           setPlans(Array.isArray(cachedData) ? cachedData : []);
         } catch (parseErr) {
-          console.error('[ScheduleListScreen] Error parsing cached plans:', parseErr);
+          console.warn('[ScheduleListScreen] Ошибка парсинга кэшированных планов:', parseErr);
         }
       }
     } finally {
@@ -64,10 +67,16 @@ export default function ScheduleListScreen() {
       await AsyncStorage.setItem('plans', JSON.stringify(plans.filter((plan) => plan.id !== planId)));
       setModalVisible(false);
       setSelectedPlan(null);
-      console.log('[ScheduleListScreen] Deleted plan:', planId);
+      // Показ тоста об успешном удалении
+      setToast({ message: 'План успешно удален', type: 'success' });
+      setTimeout(() => setToast(null), 3500); // Скрытие тоста после анимации
+      console.log('[ScheduleListScreen] Удален план:', planId);
     } catch (err) {
-      console.error('[ScheduleListScreen] Error deleting plan:', err);
+      console.warn('[ScheduleListScreen] Ошибка удаления плана:', err);
       setError('Не удалось удалить план');
+      // Показ тоста с ошибкой
+      setToast({ message: 'Не удалось удалить план', type: 'error' });
+      setTimeout(() => setToast(null), 3500);
     }
   };
 
@@ -191,6 +200,15 @@ export default function ScheduleListScreen() {
         onDelete={() => handleDelete(selectedPlan?.id)}
         theme={theme}
       />
+      {/* Рендеринг тоста */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onDismiss={() => setToast(null)}
+        />
+      )}
       <NavBar />
     </SafeAreaView>
   );

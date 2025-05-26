@@ -171,7 +171,7 @@ export default function RegisterScreen({ navigation }) {
       });
       navigation.navigate('Login');
     } catch (error) {
-      console.error('Register error:', error);
+      console.warn('Register error:', error);
       const code = error.code || 'REGISTER_ERROR';
       const defaultMessage = 'Произошла ошибка. Попробуйте ещё раз.';
       const message = ERROR_MESSAGES[code] || defaultMessage;

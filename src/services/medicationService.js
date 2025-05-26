@@ -11,7 +11,7 @@ import {
     try {
       return await fetchMedicationNames(isDietarySupplement, navigation);
     } catch (err) {
-      console.error('Error fetching medication names:', err);
+      console.warn('Error fetching medication names:', err);
       throw new Error('Не удалось загрузить список медикаментов');
     }
   };
@@ -20,7 +20,7 @@ import {
     try {
       return await fetchMedicationDetails(name, navigation);
     } catch (err) {
-      console.error('Error fetching medication details:', err);
+      console.warn('Error fetching medication details:', err);
       throw new Error('Не удалось загрузить информацию о медикаменте');
     }
   };
@@ -30,7 +30,7 @@ import {
       const data = await searchMedications(prefix, navigation);
       return data.names;
     } catch (err) {
-      console.error('Error searching medications:', err);
+      console.warn('Error searching medications:', err);
       throw new Error('Не удалось выполнить поиск медикаментов');
     }
   };
@@ -39,7 +39,7 @@ import {
     try {
       return await checkMedicationExists(name, navigation);
     } catch (err) {
-      console.error('Error checking medication existence:', err);
+      console.warn('Error checking medication existence:', err);
       throw new Error('Не удалось проверить существование медикамента');
     }
   };
@@ -48,7 +48,7 @@ import {
     try {
       return await fetchMedicationInstruction(name, navigation);
     } catch (err) {
-      console.error('Error fetching medication instruction:', err);
+      console.warn('Error fetching medication instruction:', err);
       throw new Error('Не удалось загрузить инструкцию');
     }
   };
@@ -57,7 +57,7 @@ import {
     try {
       return await createDietarySupplement(supplement, navigation);
     } catch (err) {
-      console.error('Error creating dietary supplement:', err);
+      console.warn('Error creating dietary supplement:', err);
       throw new Error('Не удалось создать БАД');
     }
   };

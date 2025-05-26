@@ -39,7 +39,7 @@ export const saveToken = async (token) => {
   try {
     await AsyncStorage.setItem("jwt_token", token);
   } catch (error) {
-    console.error("Ошибка сохранения токена:", error);
+    console.warn("Ошибка сохранения токена:", error);
   }
 };
 
@@ -48,7 +48,7 @@ export const getToken = async () => {
   try {
     return await AsyncStorage.getItem("jwt_token");
   } catch (error) {
-    console.error("Ошибка получения токена:", error);
+    console.warn("Ошибка получения токена:", error);
     return null;
   }
 };
@@ -58,7 +58,7 @@ export const removeToken = async () => {
   try {
     await AsyncStorage.removeItem("jwt_token");
   } catch (error) {
-    console.error("Ошибка удаления токена:", error);
+    console.warn("Ошибка удаления токена:", error);
   }
 };
 
@@ -68,7 +68,7 @@ export const clearLogout = async () => {
     await AsyncStorage.clear();
     console.log("AsyncStorage очищен");
   } catch (error) {
-    console.error("Ошибка при очистке AsyncStorage:", error);
+    console.warn("Ошибка при очистке AsyncStorage:", error);
   }
 };
 
@@ -76,17 +76,14 @@ export const syncDeviceInfo = async (navigation = null) => {
   try {
     // Синхронизация часового пояса
     const timeZone = moment.tz.guess();
-    const cachedTimeZone = await AsyncStorage.getItem("timeZone");
     log.yellow("[Device Sync] Timezone:", timeZone);
 
-    if (cachedTimeZone !== timeZone) {
-      const { data: timeZoneData, error: timeZoneError } = await setTimeZone(
-        timeZone,
-        navigation
-      );
-      if (!timeZoneError) {
-        await AsyncStorage.setItem("timeZone", timeZone);
-      }
+    const { data: timeZoneData, error: timeZoneError } = await setTimeZone(
+      timeZone,
+      navigation
+    );
+    if (timeZoneError) {
+      log.error("[Device Sync] Timezone sync error:", timeZoneError);
     }
 
     // Проверка разрешений на уведомления
@@ -131,24 +128,20 @@ export const syncDeviceInfo = async (navigation = null) => {
     }
 
     // Синхронизация токена устройства
-    const cachedFcmToken = await AsyncStorage.getItem("fcmToken");
-    if (cachedFcmToken !== deviceToken) {
-      const deviceInfo = {
-        deviceToken,
-        deviceType: Device.osName || "web",
-        appVersion: Constants.expoConfig?.version || "unknown",
-        platform: isExpoGo ? "expo" : "native",
-      };
+    const deviceInfo = {
+      deviceToken,
+      deviceType: Device.osName || "web",
+      appVersion: Constants.expoConfig?.version || "unknown",
+      platform: isExpoGo ? "expo" : "native",
+    };
 
-      const { data: tokenRegisterData, error: tokenRegisterError } =
-        await registerDeviceToken(deviceInfo, navigation);
+    const { data: tokenRegisterData, error: tokenRegisterError } =
+      await registerDeviceToken(deviceInfo, navigation);
 
-      if (!tokenRegisterError) {
-        await AsyncStorage.setItem("fcmToken", deviceToken);
-        log.green("[Device Sync] Device token registered successfully");
-      } else {
-        log.error("[Device Sync] Token registration error:", tokenRegisterError);
-      }
+    if (!tokenRegisterError) {
+      log.green("[Device Sync] Device token registered successfully");
+    } else {
+      log.error("[Device Sync] Token registration error:", tokenRegisterError);
     }
   } catch (error) {
     log.error("[Device Sync] Error:", error);

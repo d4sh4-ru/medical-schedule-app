@@ -72,3 +72,17 @@ export const updatePlanRequest = async (id, updatedPlan, navigation) => {
     throw err;
   }
 };
+
+export const fetchAnalyticsData = async (navigation) => {
+  try {
+    const response = await axios.get(`${PLAN_API_URL}/analytics`, { navigation });
+    return response.data;
+  } catch (err) {
+    log.error('[fetchAnalyticsData] Error:', err.message, {
+      code: err.code,
+      httpStatus: err.httpStatus,
+      response: err.response?.data,
+    });
+    throw err;
+  }
+};

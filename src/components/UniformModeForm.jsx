@@ -18,6 +18,17 @@ import DateRangePicker from "./DateRangePicker";
 import { formatTime, formatDateRange } from "../utils/scheduleUtils";
 import { getPlan } from "../services/planService";
 
+// Вспомогательная функция для создания даты без учета времени, в UTC
+// Это гарантирует, что день будет тем же, независимо от часового пояса пользователя.
+const createDateWithoutTime = (dateString) => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  // Используем setUTCFullYear, setUTCMonth, setUTCDate для работы с UTC
+  const date = new Date();
+  date.setUTCFullYear(year, month - 1, day); // month - 1, так как месяцы в JS с 0 по 11
+  date.setUTCHours(0, 0, 0, 0);
+  return date;
+};
+
 const UniformModeForm = (
   { scheduleId, isEditing, setHasUnsavedChanges },
   ref
@@ -28,7 +39,8 @@ const UniformModeForm = (
   const [interval, setInterval] = useState("1");
   const [times, setTimes] = useState([new Date()]);
   const [dateRange, setDateRange] = useState({
-    startDate: new Date(),
+    // Инициализируем startDate как дату без времени
+    startDate: createDateWithoutTime(new Date().toISOString().split('T')[0]),
     endDate: null,
   });
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -54,6 +66,9 @@ const UniformModeForm = (
     { label: "Каждый день", value: "1" },
     { label: "Через день", value: "2" },
     { label: "Через 2 дня", value: "3" },
+    { label: "Через 3 дня", value: "4" }, // Добавлен новый интервал
+    { label: "Через 4 дня", value: "5" }, // Добавлен новый интервал
+    { label: "Через 5 дней", value: "6" }, // Добавлен новый интервал
     { label: "Через неделю", value: "7" },
   ];
 
@@ -61,7 +76,7 @@ const UniformModeForm = (
     getFormData: () => ({
       tabletCount,
       tabletDosage,
-      interval,
+      interval, // Теперь interval будет числовым значением
       times,
       dateRange,
     }),
@@ -74,21 +89,36 @@ const UniformModeForm = (
           const data = await getPlan(scheduleId, navigation);
           setTabletCount(data.singleDosageTablets?.toString() || "1");
           setTabletDosage(data.singleDosage?.toString() || "100");
+          // Убедитесь, что interval устанавливается как string из числа
           setInterval(data.interval?.toString() || "1");
-          setTimes(data.administrationTimes || [new Date()]);
-          setDateRange({ startDate: data.startDate, endDate: data.endDate });
+          setTimes(
+            data.administrationTimes
+              ? data.administrationTimes.map((timeStr) => new Date(timeStr))
+              : [new Date()]
+          );
+          setDateRange({
+            // Убедитесь, что даты из getPlan также обрабатываются как "даты без времени"
+            startDate: data.startDate ? createDateWithoutTime(data.startDate.toISOString().split('T')[0]) : createDateWithoutTime(new Date().toISOString().split('T')[0]),
+            endDate: data.endDate ? createDateWithoutTime(data.endDate.toISOString().split('T')[0]) : null,
+          });
+
           const newMarkedDates = {};
-          let currentDate = new Date(data.startDate);
-          const endDate = new Date(data.endDate);
-          while (currentDate <= endDate) {
-            const dateString = currentDate.toISOString().split("T")[0];
-            newMarkedDates[dateString] = {
-              color: "#007AFF33",
-              textColor: "#000",
-              startingDay: currentDate.getTime() === data.startDate.getTime(),
-              endingDay: currentDate.getTime() === endDate.getTime(),
-            };
-            currentDate.setDate(currentDate.getDate() + 1);
+          if (data.startDate && data.endDate) {
+            // Используем createDateWithoutTime для итерации
+            let currentDate = createDateWithoutTime(data.startDate.toISOString().split('T')[0]);
+            const endDate = createDateWithoutTime(data.endDate.toISOString().split('T')[0]);
+
+            while (currentDate.getTime() <= endDate.getTime()) {
+              const dateString = currentDate.toISOString().split("T")[0];
+              newMarkedDates[dateString] = {
+                color: "#007AFF33",
+                textColor: "#000",
+                startingDay: currentDate.getTime() === createDateWithoutTime(data.startDate.toISOString().split('T')[0]).getTime(),
+                endingDay: currentDate.getTime() === createDateWithoutTime(data.endDate.toISOString().split('T')[0]).getTime(),
+              };
+              // Прибавляем один день в UTC
+              currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+            }
           }
           setMarkedDates(newMarkedDates);
         } catch (err) {
@@ -100,7 +130,9 @@ const UniformModeForm = (
   }, [isEditing, scheduleId, navigation]);
 
   const handleDateRangeSelect = (day) => {
-    const selectedDate = new Date(day.dateString);
+    // Используем createDateWithoutTime для создания выбранной даты
+    const selectedDate = createDateWithoutTime(day.dateString);
+
     if (!dateRange.startDate || (dateRange.startDate && dateRange.endDate)) {
       setDateRange({ startDate: selectedDate, endDate: null });
       setMarkedDates({
@@ -111,22 +143,27 @@ const UniformModeForm = (
         },
       });
     } else if (dateRange.startDate && !dateRange.endDate) {
-      if (selectedDate >= dateRange.startDate) {
+      const currentStartDate = createDateWithoutTime(dateRange.startDate.toISOString().split('T')[0]);
+
+      if (selectedDate.getTime() >= currentStartDate.getTime()) {
         const newMarkedDates = {};
-        let currentDate = new Date(dateRange.startDate);
-        while (currentDate <= selectedDate) {
+        let currentDate = new Date(currentStartDate); // Создаем копию для итерации
+        currentDate.setUTCHours(0,0,0,0); // Убедимся, что это UTC
+
+        while (currentDate.getTime() <= selectedDate.getTime()) {
           const dateString = currentDate.toISOString().split("T")[0];
           newMarkedDates[dateString] = {
             color: "#007AFF33",
             textColor: "#000",
-            startingDay: currentDate.getTime() === dateRange.startDate.getTime(),
+            startingDay: currentDate.getTime() === currentStartDate.getTime(),
             endingDay: currentDate.getTime() === selectedDate.getTime(),
           };
-          currentDate.setDate(currentDate.getDate() + 1);
+          currentDate.setUTCDate(currentDate.getUTCDate() + 1); // Прибавляем день в UTC
         }
         setDateRange({ ...dateRange, endDate: selectedDate });
         setMarkedDates(newMarkedDates);
       } else {
+        // Если выбранная дата раньше начальной, то делаем ее новой начальной
         setDateRange({ startDate: selectedDate, endDate: null });
         setMarkedDates({
           [day.dateString]: {
@@ -141,16 +178,47 @@ const UniformModeForm = (
   };
 
   const handleDosageChange = (newDosage) => {
-    const parsedDosage = parseInt(newDosage);
-    if (isNaN(parsedDosage) || parsedDosage <= 0) {
-      Alert.alert("Ошибка", "Введите корректную дозировку");
-      return;
+    // Если выбрали "Своя дозировка", можно открыть поле для ввода
+    if (newDosage === "custom") {
+      Alert.prompt(
+        "Своя дозировка",
+        "Введите желаемую дозировку в мг:",
+        [
+          {
+            text: "Отмена",
+            style: "cancel",
+          },
+          {
+            text: "ОК",
+            onPress: (customValue) => {
+              const parsedDosage = parseInt(customValue);
+              if (!isNaN(parsedDosage) && parsedDosage > 0) {
+                const currentTotalDose = parseInt(tabletCount) * parseInt(tabletDosage);
+                const newTabletCount = Math.ceil(currentTotalDose / parsedDosage);
+                setTabletDosage(parsedDosage.toString());
+                setTabletCount(newTabletCount.toString());
+                setHasUnsavedChanges(true);
+              } else {
+                Alert.alert("Ошибка", "Введите корректную дозировку.");
+              }
+            },
+          },
+        ],
+        "plain-text",
+        tabletDosage
+      );
+    } else {
+      const parsedDosage = parseInt(newDosage);
+      if (isNaN(parsedDosage) || parsedDosage <= 0) {
+        Alert.alert("Ошибка", "Введите корректную дозировку");
+        return;
+      }
+      const currentTotalDose = parseInt(tabletCount) * parseInt(tabletDosage);
+      const newTabletCount = Math.ceil(currentTotalDose / parsedDosage);
+      setTabletDosage(parsedDosage.toString());
+      setTabletCount(newTabletCount.toString());
+      setHasUnsavedChanges(true);
     }
-    const currentTotalDose = parseInt(tabletCount) * parseInt(tabletDosage);
-    const newTabletCount = Math.ceil(currentTotalDose / parsedDosage);
-    setTabletDosage(parsedDosage.toString());
-    setTabletCount(newTabletCount.toString());
-    setHasUnsavedChanges(true);
   };
 
   const addTime = () => {
@@ -241,7 +309,7 @@ const UniformModeForm = (
           placeholderTextColor="#666"
         />
         <Text style={styles.scheduleFormScreen.label}>
-          Дозировка одной таблетки (мг)
+          Дозировка одной таблетки
         </Text>
         <CustomPicker
           value={tabletDosage}

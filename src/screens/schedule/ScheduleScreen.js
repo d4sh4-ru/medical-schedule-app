@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SafeAreaView, View, Alert } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 import styles from '../../constants/globalStyles';
 import NavBar from '../../components/NavBar';
 import Header from '../../components/Header';
 import NotificationsList from '../../components/NotificationsList';
 import ScheduleModal from '../../components/ScheduleModal';
+import Toast from '../../components/Toast'; // Импорт компонента Toast
+import ErrorModal from '../../components/ErrorModal'; // Импорт компонента ErrorModal
 import { getNotificationsForDay, getNotificationDaysForMonth } from '../../services/notificationService';
 import { getPlan, removePlan } from '../../services/planService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -58,9 +60,11 @@ LocaleConfig.locales['ru'] = {
 
 LocaleConfig.defaultLocale = 'ru';
 
+// Компонент экрана расписаний
 export default function ScheduleScreen() {
   const { theme } = useTheme();
   const navigation = useNavigation();
+  const route = useRoute();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().split('T')[0].substring(0, 7));
   const [notifications, setNotifications] = useState([]);
@@ -72,6 +76,21 @@ export default function ScheduleScreen() {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [scheduleDetails, setScheduleDetails] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [toast, setToast] = useState(null); // Состояние для тоста
+  const [errorModal, setErrorModal] = useState(null); // Состояние для модального окна ошибок
+
+  // Проверка параметров навигации для показа тоста
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.showToast) {
+        setToast(route.params.showToast);
+        setTimeout(() => {
+          setToast(null);
+          navigation.setParams({ showToast: null }); // Очистка параметров
+        }, 3500);
+      }
+    }, [route.params])
+  );
 
   // Загрузка дней с приёмами
   const fetchMarkedDays = async (month, year) => {
@@ -80,7 +99,7 @@ export default function ScheduleScreen() {
       await AsyncStorage.setItem(`markedDays-${month}-${year}`, JSON.stringify(days));
       return days;
     } catch (err) {
-      console.error('Error fetching marked days:', err);
+      console.warn('Ошибка загрузки отмеченных дней:', err);
       const cached = await AsyncStorage.getItem(`markedDays-${month}-${year}`);
       return cached ? JSON.parse(cached) : [];
     }
@@ -95,7 +114,7 @@ export default function ScheduleScreen() {
       await AsyncStorage.setItem(`notifications-${day}-${month}-${year}`, JSON.stringify(data));
       setError(null);
     } catch (err) {
-      console.error('Error fetching notifications:', err);
+      console.warn('Ошибка загрузки уведомлений:', err);
       setError('Не удалось загрузить приёмы');
       const cached = await AsyncStorage.getItem(`notifications-${day}-${month}-${year}`);
       if (cached) {
@@ -112,8 +131,9 @@ export default function ScheduleScreen() {
       const data = await getPlan(scheduleId, navigation);
       setScheduleDetails(data);
     } catch (err) {
-      console.error('Error fetching schedule details:', err);
-      Alert.alert('Ошибка', 'Не удалось загрузить данные приёма');
+      console.warn('Ошибка загрузки деталей плана:', err);
+      setToast({ message: 'Не удалось загрузить данные приёма', type: 'error' });
+      setTimeout(() => setToast(null), 3500);
       setScheduleDetails(null);
     }
   };
@@ -124,7 +144,7 @@ export default function ScheduleScreen() {
       const days = await fetchMarkedDays(month, year);
       setMarkedDays(days);
     } catch (err) {
-      console.error('Error fetching marked days during init:', err);
+      console.warn('Ошибка загрузки отмеченных дней при инициализации:', err);
       setError('Ошибка загрузки отмеченных дней');
       setMarkedDays([]);
     }
@@ -208,29 +228,30 @@ export default function ScheduleScreen() {
 
   // Удаление уведомления
   const handleDelete = async (id) => {
-    Alert.alert(
-      'Подтверждение',
-      'Вы уверены, что хотите удалить этот приём?',
-      [
-        { text: 'Отмена', style: 'cancel' },
-        {
-          text: 'Удалить',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removePlan(id, navigation);
-              setModalVisible(false);
-              const [year, month, day] = selectedDate.split('-').map(Number);
-              await loadNotifications(day, month, year);
-              await initialize(month, year);
-            } catch (err) {
-              console.error('Error deleting notification:', err);
-              Alert.alert('Ошибка', 'Не удалось удалить приём');
-            }
-          },
-        },
-      ]
-    );
+    setErrorModal({
+      visible: true,
+      title: 'Предупреждение',
+      error: 'Вы уверены, что хотите удалить этот приём?',
+      secondaryButtonText: 'Удалить',
+      onSecondaryAction: async () => {
+        try {
+          await removePlan(id, navigation);
+          setModalVisible(false);
+          setErrorModal(null);
+          const [year, month, day] = selectedDate.split('-').map(Number);
+          await loadNotifications(day, month, year);
+          await initialize(month, year);
+          setToast({ message: 'Приём успешно удален', type: 'success' });
+          setTimeout(() => setToast(null), 3500);
+        } catch (err) {
+          console.warn('Ошибка удаления приёма:', err);
+          setErrorModal(null);
+          setToast({ message: 'Не удалось удалить приём', type: 'error' });
+          setTimeout(() => setToast(null), 3500);
+        }
+      },
+      onClose: () => setErrorModal(null),
+    });
   };
 
   // Обработчик обновления
@@ -300,6 +321,26 @@ export default function ScheduleScreen() {
         onDelete={() => handleDelete(selectedNotification?.planId)}
         theme={theme}
       />
+      {/* Рендеринг тоста */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onDismiss={() => setToast(null)}
+        />
+      )}
+      {/* Рендеринг модального окна ошибок */}
+      {errorModal && (
+        <ErrorModal
+          visible={errorModal.visible}
+          onClose={errorModal.onClose}
+          title={errorModal.title}
+          error={errorModal.error}
+          secondaryButtonText={errorModal.secondaryButtonText}
+          onSecondaryAction={errorModal.onSecondaryAction}
+        />
+      )}
       <NavBar />
     </SafeAreaView>
   );

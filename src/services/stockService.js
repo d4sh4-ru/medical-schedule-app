@@ -14,7 +14,7 @@ export const getStocks = async (navigation) => {
     await AsyncStorage.setItem('stocks', JSON.stringify(data));
     return data;
   } catch (err) {
-    console.error('Ошибка загрузки остатков:', err);
+    console.warn('Ошибка загрузки остатков:', err);
     const cached = await AsyncStorage.getItem('stocks');
     if (cached) return JSON.parse(cached);
     throw new Error('Не удалось загрузить остатки');
@@ -44,7 +44,7 @@ export const modifyStock = async (id, updatedStock, currentStocks, navigation) =
     await AsyncStorage.setItem('stocks', JSON.stringify(updated));
     return updated;
   } catch (err) {
-    console.error('Ошибка обновления остатка:', err);
+    console.warn('Ошибка обновления остатка:', err);
     throw new Error('Не удалось обновить остаток');
   }
 };
@@ -56,7 +56,7 @@ export const removeStock = async (id, currentStocks, navigation) => {
     await AsyncStorage.setItem('stocks', JSON.stringify(updated));
     return updated;
   } catch (err) {
-    console.error('Ошибка удаления остатка:', err);
+    console.warn('Ошибка удаления остатка:', err);
     throw new Error('Не удалось удалить остаток');
   }
 };
@@ -65,7 +65,7 @@ export const getStockById = async (id, navigation) => {
   try {
     return await fetchSingleStockRequest(id, navigation);
   } catch (err) {
-    console.error('Ошибка получения остатка:', err);
+    console.warn('Ошибка получения остатка:', err);
     throw new Error('Не удалось загрузить остаток');
   }
 };

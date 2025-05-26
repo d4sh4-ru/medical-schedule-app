@@ -216,7 +216,7 @@ const NotificationsList = ({
             <FlatList
               data={notifications}
               renderItem={renderNotification}
-              keyExtractor={(item) => `${item.id}-${item.sentAt}`}
+              keyExtractor={(item) => `${item.sentAt}+${item.medicationTradeName}`}
               contentContainerStyle={styles.notificationsList.list}
               showsVerticalScrollIndicator={false}
               initialNumToRender={5}

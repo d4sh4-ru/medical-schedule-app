@@ -13,6 +13,7 @@ import styles from "../constants/globalStyles";
 const ErrorModal = ({
   visible,
   onClose,
+  title,
   error, // Может быть строкой (одна ошибка) или массивом строк (несколько ошибок)
   secondaryButtonText, // Текст для второй кнопки (если передан, кнопка отображается)
   onSecondaryAction, // Действие для второй кнопки (например, навигация или повторная попытка)
@@ -36,6 +37,8 @@ const ErrorModal = ({
   const isErrorArray = Array.isArray(error);
   const errorData = isErrorArray ? error : [error];
 
+  const iconColor = title === "Предупреждение" ? "black" : "#d32f2f";
+
   return (
     <Modal
       animationType="fade"
@@ -46,8 +49,8 @@ const ErrorModal = ({
       <SafeAreaView style={styles.scheduleScreen.modalContainer}>
         <View style={[styles.scheduleScreen.modalContent]}>
           <View style={{ flexDirection: "row" }}>
-            <Ionicons name="warning-outline" size={24} color={"#d32f2f"} />
-            <Text style={[styles.scheduleScreen.modalTitle, {paddingLeft: 10}]}>Ошибка</Text> 
+            <Ionicons name="warning-outline" size={24} color={iconColor} />
+            <Text style={[styles.scheduleScreen.modalTitle, {paddingLeft: 10}]}>{title}</Text> 
           </View>
           {error && errorData.length > 0 ? (
             <>
@@ -63,7 +66,7 @@ const ErrorModal = ({
                   <Text
                     style={[
                       styles.scheduleScreen.modalText,
-                      { color: "#d32f2f" },
+                      { color: iconColor },
                     ]}
                   >
                     {error}

@@ -74,8 +74,8 @@ export const confirmUserNotification = async (id, notifications, setNotification
     const medicationTradeName = notification?.medicationTradeName || 'Неизвестный препарат';
     const stockId = notification?.stockId;
 
-    const { data: stocks, error: stockError } = await fetchStocksRequest(navigation);
-    if (stockError) {
+    const { data, error } = await fetchStocksRequest(navigation);
+    if (error || data === undefined) {
       log.error('[confirmUserNotification] Error fetching stocks:', stockError.message);
       throw new Error('Не удалось загрузить остатки препаратов.');
     }
@@ -83,9 +83,9 @@ export const confirmUserNotification = async (id, notifications, setNotification
     // Поиск остатка
     let stock;
     if (stockId) {
-      stock = stocks.find((s) => s.id === stockId);
+      stock = data.find((s) => s.id === stockId);
     } else {
-      stock = stocks.find((s) => s.medicationTradeName === medicationTradeName);
+      stock = data.find((s) => s.medicationTradeName === medicationTradeName);
     }
 
     if (stock && stock.remainingQuantity < 3) {

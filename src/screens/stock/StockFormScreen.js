@@ -44,7 +44,7 @@ export default function StockFormScreen({ route }) {
       }
       console.log('Stock created:', stockData);
     } catch (err) {
-      console.error('Error adding stock:', err);
+      console.warn('Error adding stock:', err);
       setErrorModal({ visible: true, error: err.message || 'Не удалось добавить остаток' });
     }
   };
