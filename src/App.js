@@ -1,0 +1,158 @@
+import { useEffect } from 'react';
+import 'react-native-gesture-handler';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { ThemeProvider } from './theme/ThemeProvider';
+import { createStackNavigator } from '@react-navigation/stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { syncDeviceInfo } from './services/userService';
+import RegisterScreen from './screens/auth/RegisterScreen';
+import LoginScreen from './screens/auth/LoginScreen';
+import HomeScreen from './screens/HomeScreen';
+import CalendarScreen from './screens/CalendarScreen';
+import ScheduleScreen from './screens/schedule/ScheduleScreen';
+import ScheduleFormScreen from './screens/schedule/ScheduleFormScreen';
+import ScheduleListScreen from './screens/schedule/ScheduleListScreen';
+import StockScreen from './screens/stock/StockScreen';
+import StockFormScreen from './screens/stock/StockFormScreen';
+import SettingsScreen from './screens/settings/SettingsScreen';
+import AnalitycsScreen from './screens/analitycs/AnalitycsScreen';
+import UpdatePasswordScreen from './screens/settings/UpdatePasswordScreen';
+import EditMeScreen from './screens/settings/EditMeScreen';
+import ProtectedRoute from './components/ProtectedRoute';
+
+const Stack = createStackNavigator();
+
+// Кастомная анимация fade
+const forFade = ({ current }) => ({
+  cardStyle: {
+    opacity: current.progress,
+  },
+});
+
+// Настройки перехода
+const transitionSpec = {
+  open: {
+    animation: 'timing',
+    config: { duration: 400 },
+  },
+  close: {
+    animation: 'timing',
+    config: { duration: 400 },
+  },
+};
+
+// Публичные маршруты
+const publicRoutes = [
+  {
+    name: 'Login',
+    component: LoginScreen,
+  },
+  {
+    name: 'Register',
+    component: RegisterScreen,
+  },
+];
+
+// Защищённые маршруты
+const protectedRoutes = [
+  {
+    name: 'Home',
+    component: HomeScreen,
+  },
+  {
+    name: 'Calendar',
+    component: CalendarScreen,
+  },
+  {
+    name: 'Schedule',
+    component: ScheduleScreen,
+  },
+  {
+    name: 'Settings',
+    component: SettingsScreen,
+  },
+  {
+    name: 'Stock',
+    component: StockScreen,
+  },
+  {
+    name: 'Analytics',
+    component: AnalitycsScreen,
+  },
+  {
+    name: 'ScheduleForm',
+    component: ScheduleFormScreen,
+  },
+  {
+    name: 'ScheduleList',
+    component: ScheduleListScreen,
+  },
+  {
+    name: 'StockForm',
+    component: StockFormScreen,
+  },
+  {
+    name: 'UpdatePassword',
+    component: UpdatePasswordScreen,
+  },
+  {
+    name: 'EditMe',
+    component: EditMeScreen,
+  },
+];
+
+export default function App() {
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    const unsubscribe = navigationRef.addListener('state', async () => {
+      const currentRoute = navigationRef.getCurrentRoute();
+      const screen = currentRoute?.name;
+
+      if (screen !== 'Login' && screen !== 'Register') {
+        await syncDeviceInfo();
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  return (
+    <ThemeProvider>
+      <NavigationContainer ref={navigationRef}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <Stack.Navigator
+            initialRouteName='Home'
+            screenOptions={{
+              cardStyleInterpolator: forFade,
+              transitionSpec: transitionSpec,
+              gestureEnabled: false,
+              cardStyle: { backgroundColor: 'transparent' },
+              headerShown: false, // Отключаем заголовки для всех экранов
+            }}
+          >
+            {publicRoutes.map((route) => (
+              <Stack.Screen
+                key={route.name}
+                name={route.name}
+                component={route.component}
+              />
+            ))}
+            {protectedRoutes.map((route) => (
+              <Stack.Screen
+                key={route.name}
+                name={route.name}
+              >
+                {(props) => (
+                  <ProtectedRoute>
+                    <route.component {...props} />
+                  </ProtectedRoute>
+                )}
+              </Stack.Screen>
+            ))}
+          </Stack.Navigator>
+        </GestureHandlerRootView>
+      </NavigationContainer>
+    </ThemeProvider>
+  );
+}

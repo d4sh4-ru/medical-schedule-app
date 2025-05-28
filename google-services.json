@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "97288865411",
+    "project_id": "medical-app-fqw",
+    "storage_bucket": "medical-app-fqw.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:97288865411:android:a7f1614d32552a75a83db6",
+        "android_client_info": {
+          "package_name": "com.d4sh4ru.medicalscheduleapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2R4YZFm2x84Z6d4E8qKWf0xX_eeD-hpg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
